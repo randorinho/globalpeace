@@ -60,6 +60,8 @@ services:
     env_file: ../backend/.env.example
     environment:
       GPAI_DATABASE_URL: postgresql+asyncpg://gpai:gpai@postgres:5432/gpai
+      GPAI_ENVIRONMENT: ${GPAI_ENVIRONMENT:-development}
+      GPAI_GATEWAY_SHARED_SECRET: ${GPAI_GATEWAY_SHARED_SECRET:-dev-only-change-me}
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,9 +75,9 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     profiles: ["tunnel"]
-    command: tunnel run
-    environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}  # required when running the tunnel profile
+    command: tunnel --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./cloudflared:/etc/cloudflared:ro   # config.yml + credentials (gitignored)
     depends_on:
       - api
 

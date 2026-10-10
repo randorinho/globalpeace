@@ -1,0 +1,6 @@
+tunnel: c12c6a63-494f-4ada-b133-6b1c55432d0e
+credentials-file: /etc/cloudflared/c12c6a63-494f-4ada-b133-6b1c55432d0e.json
+ingress:
+  - hostname: origin.globalpeace.ai
+    service: http://api:8000
+  - service: http_status:404

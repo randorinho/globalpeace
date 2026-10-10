@@ -32,7 +32,9 @@ def get_reviewer(request: Request) -> str:
     (the gateway/tunnel is Access-protected, and Access injects the header
     after authenticating the user). X-Reviewer is accepted in development only."""
     email = request.headers.get("cf-access-authenticated-user-email")
-    if not email and settings.environment == "development":
+    if not email:
+        # Trusted because the gateway-secret middleware already gated this
+        # request (production), or we are in local development.
         email = request.headers.get("x-reviewer")
     if not email:
         raise HTTPException(401, "reviewer identity required (Cloudflare Access)")

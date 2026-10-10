@@ -34,6 +34,14 @@ export default {
       return jsonError(404, "not found");
     }
 
+    // Only reviewed-data endpoints are public. Review, ingestion, audit and
+    // evidence APIs stay closed at the edge until a Cloudflare Access policy
+    // protects them — reviewers work via the local dashboard meanwhile.
+    const rest = url.pathname.slice(API_PREFIX.length) || "/";
+    if (!rest.startsWith("/public/") && rest !== "/healthz") {
+      return jsonError(403, "this endpoint requires authenticated access");
+    }
+
     // Map /api/<rest> → origin /<rest>
     const originUrl = new URL(env.ORIGIN_URL);
     originUrl.pathname = url.pathname.slice(API_PREFIX.length) || "/";
