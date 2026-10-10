@@ -23,3 +23,5 @@ secrets/
 .DS_Store
 .idea/
 .vscode/
+.dev.vars
+worker-configuration.d.ts

@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gpai-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-10",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Attach to the zone once DNS is active:
+  "routes": [
+    { "pattern": "globalpeace.ai/api/*", "zone_name": "globalpeace.ai" }
+  ],
+
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+
+  "vars": {
+    // Tunnel hostname in front of the FastAPI origin (infra/docker-compose.yml)
+    "ORIGIN_URL": "https://origin.globalpeace.ai"
+  }
+
+  // Secrets — set via `wrangler secret put <NAME>`, never in this file:
+  //   GATEWAY_SHARED_SECRET   must match GPAI_GATEWAY_SHARED_SECRET at the origin
+  //   CF_ACCESS_CLIENT_ID     Cloudflare Access service token (if Access protects the tunnel)
+  //   CF_ACCESS_CLIENT_SECRET
+}

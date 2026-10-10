@@ -49,7 +49,8 @@ See the full documentation:
 ## Repository layout
 
 ```
-backend/    FastAPI services, data model, risk engine
+backend/    FastAPI origin API — event model, risk engine
+edge/       Cloudflare Workers — API gateway (wrangler)
 pipelines/  Ingestion connectors, normalisation, verification (Kafka/ETL)
 frontend/   React + MapLibre dashboard and public site
 infra/      docker-compose, deployment, observability
