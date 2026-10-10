@@ -1,0 +1,39 @@
+# Source registry — the pilot starts narrow (see docs/ROADMAP.md: 3-5 regions).
+# Every source declares its confidence prior; ingested items are ALWAYS claims
+# until the verification layer upgrades them.
+
+pilot_countries:
+  # name-pattern → ISO2, used by connectors that carry no structured country field
+  sudan: SD
+  chad: TD
+  "south sudan": SS
+  "democratic republic of the congo": CD
+  haiti: HT
+
+sources:
+  # ReliefWeb country feeds via RSS (PC<id> = primary-country taxonomy id).
+  # The ReliefWeb REST API (kind: reliefweb) needs a registered appname —
+  # set RELIEFWEB_APPNAME once approved: https://apidoc.reliefweb.int/parameters#appname
+  - id: reliefweb-sd
+    kind: rss
+    url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC220%29"
+    country: SD
+    confidence: 0.5      # institutional humanitarian reporting, still a claim
+    limit: 10
+
+  - id: reliefweb-td
+    kind: rss
+    url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC55%29"
+    country: TD
+    confidence: 0.5
+    limit: 10
+
+  # Global headlines — no fixed country: items are matched against
+  # pilot_countries by name; items mentioning no pilot country are skipped
+  # (logged), never guessed. (UN News RSS is a good addition where reachable:
+  # https://news.un.org/feed/subscribe/en/news/region/africa/rss.xml)
+  - id: reliefweb-headlines
+    kind: rss
+    url: "https://reliefweb.int/updates/rss.xml?view=headlines"
+    confidence: 0.4
+    limit: 20

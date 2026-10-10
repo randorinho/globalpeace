@@ -25,3 +25,4 @@ secrets/
 .vscode/
 .dev.vars
 worker-configuration.d.ts
+pipelines/.state/
