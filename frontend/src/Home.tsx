@@ -1,5 +1,10 @@
 import * as maplibregl from "maplibre-gl";
+// maplibre-gl v6 loads its worker as a separate module; under Vite the default
+// URL resolution fails ("Worker failed to load") — point it at the bundled file.
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 import { useEffect, useRef, useState } from "react";
 import type { GPEvent } from "./types";
 
@@ -177,7 +182,7 @@ export default function Home() {
           Nothing here is a forecast, and nothing here is a ranking.
         </p>
       </div>
-      {err && <div className="err">Could not load the public feed: {err}</div>}
+      {err && <div className="err">{err.startsWith("map:") ? `Map error — ${err.slice(4).trim()}` : `Could not load the public feed: ${err}`}</div>}
       <div className="home-cols">
         <div ref={mapDiv} className="map" aria-label="Map of reviewed events" />
         <div className="latest">
