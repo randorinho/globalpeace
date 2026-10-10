@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Home from "./Home";
 import { fetchHistory, fetchQueue, postReview } from "./api";
 import type { EventType, GPEvent, ReviewRecord, VerificationStatus } from "./types";
 
@@ -161,21 +162,14 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
   );
 }
 
-export default function App() {
+function ReviewPage() {
   const [queue, setQueue] = useState<GPEvent[]>([]);
   const [pending, setPending] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [country, setCountry] = useState("");
   const [etype, setEtype] = useState("");
   const [reviewer, setReviewer] = useState(() => localStorage.getItem("gp-reviewer") ?? "");
-  const [theme, setTheme] = useState(() =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-  );
   const [loadErr, setLoadErr] = useState("");
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
 
   const load = useCallback(() => {
     fetchQueue({ country: country || undefined, event_type: etype || undefined })
@@ -189,9 +183,8 @@ export default function App() {
   const selected = queue.find((e) => e.event_id === selectedId) ?? null;
 
   return (
-    <div className="app">
-      <div className="topbar">
-        <h1><span className="brand">globalpeace.ai</span> · Review</h1>
+    <>
+      <div className="topbar subbar">
         <span className="pending-chip">{pending} pending</span>
         <div className="spacer" />
         <input
@@ -200,9 +193,6 @@ export default function App() {
           value={reviewer}
           onChange={(e) => { setReviewer(e.target.value); localStorage.setItem("gp-reviewer", e.target.value); }}
         />
-        <button type="button" className="theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-          {theme === "dark" ? "Light" : "Dark"}
-        </button>
       </div>
       <div className="cols">
         <div className="queue">
@@ -228,6 +218,42 @@ export default function App() {
             : <div className="empty">Select a claim from the queue to review it.</div>}
         </div>
       </div>
+    </>
+  );
+}
+
+export default function App() {
+  const [route, setRoute] = useState(window.location.hash);
+  const [theme, setTheme] = useState(() =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  );
+
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  const review = route === "#/review";
+
+  return (
+    <div className="app">
+      <div className="topbar">
+        <h1><span className="brand">globalpeace.ai</span></h1>
+        <nav className="nav">
+          <a href="#/" className={review ? "" : "on"}>Map</a>
+          <a href="#/review" className={review ? "on" : ""}>Review</a>
+        </nav>
+        <div className="spacer" />
+        <button type="button" className="theme-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+          {theme === "dark" ? "Light" : "Dark"}
+        </button>
+      </div>
+      {review ? <ReviewPage /> : <Home />}
     </div>
   );
 }

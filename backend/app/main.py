@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from .config import settings
 from .db import Base, engine
-from .routers import events, health, review
+from .routers import events, health, public, review
 
 
 @asynccontextmanager
@@ -35,3 +35,4 @@ async def require_gateway_secret(request: Request, call_next):
 app.include_router(health.router)
 app.include_router(events.router)
 app.include_router(review.router)
+app.include_router(public.router)
