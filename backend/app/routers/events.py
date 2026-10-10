@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from geoalchemy2.shape import from_shape, to_shape
@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import get_session
 from ..models import Event
-from ..schemas import EventCreate, EventOut, EventType, Location
+from ..schemas import AuditIn, EventCreate, EventOut, EventType, Location
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -21,6 +21,7 @@ def _to_out(ev: Event) -> EventOut:
     return EventOut(
         event_id=ev.event_id,
         title=ev.title,
+        ai_audit=ev.ai_audit,
         date_time=ev.date_time,
         location=loc,
         country=ev.country,
@@ -64,10 +65,15 @@ async def list_events(
     country: str | None = None,
     event_type: EventType | None = None,
     since: datetime | None = None,
+    audited: bool | None = None,
     limit: int = Query(default=100, le=1000),
     session: AsyncSession = Depends(get_session),
 ):
     q = select(Event).order_by(Event.date_time.desc()).limit(limit)
+    if audited is True:
+        q = q.where(Event.ai_audit.isnot(None))
+    elif audited is False:
+        q = q.where(Event.ai_audit.is_(None))
     if country:
         q = q.where(Event.country == country.upper())
     if event_type:
@@ -83,4 +89,23 @@ async def get_event(event_id: str, session: AsyncSession = Depends(get_session))
     ev = await session.get(Event, event_id)
     if ev is None:
         raise HTTPException(404, "event not found")
+    return _to_out(ev)
+
+
+@router.post("/{event_id}/audit", response_model=EventOut)
+async def audit_event(
+    event_id: str, body: AuditIn, session: AsyncSession = Depends(get_session)
+):
+    """Store an AI audit recommendation. Never touches verification_status or
+    human_review — verification is exclusively a human decision (review router)."""
+    ev = await session.get(Event, event_id)
+    if ev is None:
+        raise HTTPException(404, "event not found")
+    ev.ai_audit = {
+        **body.model_dump(mode="json"),
+        "human_review_required": True,
+        "audited_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await session.commit()
+    await session.refresh(ev)
     return _to_out(ev)

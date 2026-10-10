@@ -36,6 +36,7 @@ class Event(Base):
     )
     civilian_impact: Mapped[dict] = mapped_column(JSON, default=dict)
     human_review: Mapped[bool] = mapped_column(Boolean, default=False)
+    ai_audit: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     last_updated: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
     )
@@ -57,4 +58,25 @@ class ReviewDecision(Base):
     note: Mapped[str] = mapped_column(String)
     sources_consulted: Mapped[list] = mapped_column(JSON, default=list)
     changes: Mapped[dict] = mapped_column(JSON, default=dict)  # field → {from, to}
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class Evidence(Base):
+    """Append-only external evidence attached to an event. Validated against
+    outside sources at submission (reachability, source tier, cross-check
+    coverage); the verdict it enables remains a human decision."""
+
+    __tablename__ = "evidence"
+
+    evidence_id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    event_id: Mapped[str] = mapped_column(String, index=True)
+    submitted_by: Mapped[str] = mapped_column(String)
+    url: Mapped[str] = mapped_column(String(1000))
+    direction: Mapped[str] = mapped_column(String)
+    note: Mapped[str] = mapped_column(String)
+    source_tier: Mapped[str] = mapped_column(String, default="unknown")
+    reachable: Mapped[bool] = mapped_column(Boolean, default=False)
+    covers_cross_check: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

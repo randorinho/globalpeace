@@ -3,7 +3,8 @@
 Rules enforced here, not left to convention:
 - every decision carries a reviewer identity and a written note;
 - the audit trail is append-only (no update/delete endpoints exist);
-- `retracted` is terminal — no further transitions;
+- `retracted` re-opens only when new evidence was added after the retraction
+  (human-led: more data can change any decision, but only through evidence);
 - a claim becomes an observed_fact only through a `verified` decision;
 - corrections (country, event_type, confidence) are diffed into the audit row.
 """
@@ -13,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..db import get_session
-from ..models import Event, ReviewDecision
+from ..models import Event, Evidence, ReviewDecision
 from ..schemas import (
     EventType,
     InformationType,
@@ -72,7 +73,26 @@ async def review_event(
     if ev is None:
         raise HTTPException(404, "event not found")
     if ev.verification_status == VerificationStatus.RETRACTED:
-        raise HTTPException(409, "event is retracted; retraction is terminal")
+        last_retraction = (
+            await session.execute(
+                select(ReviewDecision.created_at)
+                .where(ReviewDecision.event_id == event_id,
+                       ReviewDecision.new_status == VerificationStatus.RETRACTED)
+                .order_by(ReviewDecision.created_at.desc()).limit(1)
+            )
+        ).scalar_one_or_none()
+        new_evidence = (
+            await session.execute(
+                select(func.count()).select_from(Evidence)
+                .where(Evidence.event_id == event_id,
+                       Evidence.created_at > last_retraction)
+            )
+        ).scalar_one() if last_retraction else 0
+        if not new_evidence:
+            raise HTTPException(
+                409,
+                "event is retracted; add new external evidence to re-open the decision",
+            )
 
     changes: dict[str, dict] = {}
     if body.corrections:

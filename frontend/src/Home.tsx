@@ -77,11 +77,44 @@ export default function Home() {
     if (!mapDiv.current || events.length === 0) return;
     const map = new maplibregl.Map({
       container: mapDiv.current,
-      // Free demo vector tiles; production self-hosts its own style/tiles.
-      style: "https://demotiles.maplibre.org/style.json",
+      // Inline style over the free demotiles vector source; production
+      // self-hosts its own tiles. Inline = no dependency on the remote
+      // style's layer stack or fonts.
+      style: {
+        version: 8,
+        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+        sources: {
+          countries: {
+            type: "vector",
+            url: "https://demotiles.maplibre.org/tiles/tiles.json",
+          },
+        },
+        layers: [
+          { id: "bg", type: "background", paint: { "background-color": "#dfe9e5" } },
+          {
+            id: "land",
+            type: "fill",
+            source: "countries",
+            "source-layer": "countries",
+            paint: { "fill-color": "#f7faf9", "fill-outline-color": "#b8c4bf" },
+          },
+          {
+            id: "borders",
+            type: "line",
+            source: "countries",
+            "source-layer": "countries",
+            paint: { "line-color": "#a7b3ae", "line-width": 0.6 },
+          },
+        ],
+      },
       center: [15, 12],
       zoom: 2.2,
       attributionControl: { compact: true },
+    });
+    map.on("error", (e) => {
+      // Surface silent tile/style failures instead of a blank map
+      console.error("maplibre:", e.error);
+      setErr((prev) => prev || `map: ${e.error?.message ?? "load failed"}`);
     });
     map.on("load", () => {
       map.addSource("countries", { type: "geojson", data: buildCountryGeoJSON(events) });
@@ -104,7 +137,7 @@ export default function Home() {
         layout: {
           "text-field": ["concat", ["get", "name"], "\n", ["get", "count"]],
           "text-size": 12,
-          "text-font": ["Open Sans Semibold"],
+          "text-font": ["Noto Sans Regular"],
         },
         paint: { "text-color": "#2A353D", "text-halo-color": "#ffffff", "text-halo-width": 1.5 },
       });

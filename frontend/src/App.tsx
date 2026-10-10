@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Home from "./Home";
-import { fetchHistory, fetchQueue, postReview } from "./api";
-import type { EventType, GPEvent, ReviewRecord, VerificationStatus } from "./types";
+import { fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
+import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, VerificationStatus } from "./types";
 
 const STATUSES: VerificationStatus[] = ["verified", "partially_verified", "disputed", "retracted"];
 const TYPES: EventType[] = ["protest", "attack", "negotiation", "displacement"];
@@ -27,6 +27,11 @@ function Card({ ev, selected, onClick }: { ev: GPEvent; selected: boolean; onCli
         <Badge status={ev.verification_status} />
       </div>
       {ev.title && <span className="title">{ev.title}</span>}
+      {ev.ai_audit && (
+        <span className={`audit-chip a-${ev.ai_audit.verdict}`}>
+          AI: {ev.ai_audit.verdict.replace(/_/g, " ")}
+        </span>
+      )}
       <span className="meta">
         {fmt(ev.date_time)} · conf {ev.confidence.toFixed(2)} · {ev.information_type}
       </span>
@@ -37,6 +42,14 @@ function Card({ ev, selected, onClick }: { ev: GPEvent; selected: boolean; onCli
 
 function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; onReviewed: () => void }) {
   const [history, setHistory] = useState<ReviewRecord[]>([]);
+  const [evidence, setEvidence] = useState<{ items: EvidenceItem[]; summary: EvidenceSummary } | null>(null);
+  const [evUrl, setEvUrl] = useState("");
+  const [evDirection, setEvDirection] = useState("supports");
+  const [evNote, setEvNote] = useState("");
+  const [evMsg, setEvMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const loadEvidence = () =>
+    fetchEvidence(ev.event_id).then(setEvidence).catch(() => setEvidence(null));
   const [status, setStatus] = useState<VerificationStatus | null>(null);
   const [note, setNote] = useState("");
   const [consulted, setConsulted] = useState("");
@@ -49,7 +62,22 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
   useEffect(() => {
     setStatus(null); setNote(""); setConsulted(""); setCCountry(""); setCType(""); setCConf(""); setMsg(null);
     fetchHistory(ev.event_id).then(setHistory).catch(() => setHistory([]));
+    setEvUrl(""); setEvNote(""); setEvMsg(null);
+    loadEvidence();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ev.event_id]);
+
+  const submitEvidence = async () => {
+    setEvMsg(null);
+    try {
+      await postEvidence(ev.event_id, reviewer, { url: evUrl.trim(), direction: evDirection, note: evNote.trim() });
+      setEvUrl(""); setEvNote("");
+      setEvMsg({ ok: true, text: "Evidence recorded and validated" });
+      loadEvidence();
+    } catch (e) {
+      setEvMsg({ ok: false, text: e instanceof Error ? e.message : "Failed" });
+    }
+  };
 
   const canSubmit = !!status && note.trim().length >= 5 && !!reviewer && !busy;
 
@@ -69,6 +97,7 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
       });
       setMsg({ ok: true, text: `Recorded: ${status.replace("_", " ")}` });
       onReviewed();
+      loadEvidence();
     } catch (e) {
       setMsg({ ok: false, text: e instanceof Error ? e.message : "Request failed" });
     } finally {
@@ -101,6 +130,69 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
           <div className="confbar"><div style={{ width: `${ev.confidence * 100}%` }} /></div>
         </dd>
       </dl>
+
+      {ev.ai_audit && (
+        <div className="audit-panel">
+          <h3>
+            AI audit — advisory only
+            <span className={`audit-chip a-${ev.ai_audit.verdict}`}>
+              {ev.ai_audit.verdict.replace(/_/g, " ")} · {ev.ai_audit.score.toFixed(2)}
+            </span>
+          </h3>
+          <ul>
+            {ev.ai_audit.reasons.map((r) => <li key={r}>{r}</li>)}
+          </ul>
+          {typeof ev.ai_audit.llm_opinion?.reviewer_summary === "string" && (
+            <p className="analyst">Analyst: {ev.ai_audit.llm_opinion.reviewer_summary}</p>
+          )}
+          <span className="engine">{ev.ai_audit.engine} · human review always required</span>
+        </div>
+      )}
+
+      <div className="evidence">
+        <h3>
+          External evidence
+          {evidence?.summary.ready_for_rereview && (
+            <span className="badge b-partially_verified"><span className="dot" />ready for re-review</span>
+          )}
+        </h3>
+        {evidence && evidence.items.length > 0 && (
+          <div className="ev-list">
+            {evidence.items.map((it) => (
+              <div className="ev-row" key={it.evidence_id}>
+                <span className={`ev-dir d-${it.direction}`}>{it.direction}</span>
+                <a href={it.url} target="_blank" rel="noreferrer">{new URL(it.url).hostname}</a>
+                <span className="ev-meta">
+                  {it.source_tier}{it.reachable ? " · reachable" : " · unreachable"}
+                  {it.covers_cross_check ? ` · covers ${it.covers_cross_check}` : ""}
+                </span>
+                <span className="ev-note">{it.note} — {it.submitted_by}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {evidence && evidence.items.length > 0 && (
+          <div className="ev-summary">
+            {evidence.summary.supports} supporting · {evidence.summary.contradicts} contradicting ·{" "}
+            {evidence.summary.distinct_domains} domain(s)
+            {evidence.summary.cross_checks_covered.length > 0 &&
+              ` · cross-checks covered: ${evidence.summary.cross_checks_covered.join(", ")}`}
+          </div>
+        )}
+        <div className="ev-form">
+          <input placeholder="https://… external source" value={evUrl} onChange={(e) => setEvUrl(e.target.value)} />
+          <select value={evDirection} onChange={(e) => setEvDirection(e.target.value)} aria-label="Direction">
+            <option value="supports">supports</option>
+            <option value="contradicts">contradicts</option>
+            <option value="context">context</option>
+          </select>
+          <input placeholder="what this source shows (required)" value={evNote} onChange={(e) => setEvNote(e.target.value)} />
+          <button type="button" className="btn-primary" disabled={!reviewer || evUrl.trim().length < 10 || evNote.trim().length < 5} onClick={submitEvidence}>
+            Add evidence
+          </button>
+        </div>
+        {evMsg && <span className={evMsg.ok ? "ok" : "err"}>{evMsg.text}</span>}
+      </div>
 
       <div className="decision">
         <h3>Decision</h3>

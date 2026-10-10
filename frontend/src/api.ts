@@ -1,4 +1,4 @@
-import type { GPEvent, ReviewDecision, ReviewRecord } from "./types";
+import type { EvidenceItem, EvidenceSummary, GPEvent, ReviewDecision, ReviewRecord } from "./types";
 
 const BASE = "/api";
 
@@ -32,4 +32,24 @@ export async function postReview(eventId: string, reviewer: string, decision: Re
     }),
   );
   return (await res.json()) as ReviewRecord;
+}
+
+export async function fetchEvidence(eventId: string) {
+  const res = await check(await fetch(`${BASE}/events/${eventId}/evidence`));
+  return (await res.json()) as { items: EvidenceItem[]; summary: EvidenceSummary };
+}
+
+export async function postEvidence(
+  eventId: string,
+  reviewer: string,
+  body: { url: string; direction: string; note: string },
+) {
+  const res = await check(
+    await fetch(`${BASE}/events/${eventId}/evidence`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-reviewer": reviewer },
+      body: JSON.stringify(body),
+    }),
+  );
+  return (await res.json()) as EvidenceItem;
 }

@@ -62,6 +62,7 @@ class EventCreate(EventBase):
 
 class EventOut(EventBase):
     event_id: str
+    ai_audit: dict | None = None
     verification_status: VerificationStatus
     human_review: bool
     last_updated: datetime
@@ -98,3 +99,69 @@ class ReviewRecordOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- AI audit (docs/AUDIT_CRITERIA.md) ---
+
+class AuditVerdict(str, Enum):
+    CREDIBLE_RECENT = "credible_recent"
+    NEEDS_ADDITIONAL_VERIFICATION = "needs_additional_verification"
+    STALE_LOW_PRIORITY = "stale_low_priority"
+
+
+class AuditIn(BaseModel):
+    """An AI audit recommendation. It never changes verification_status —
+    human_review_required is structurally always true."""
+
+    verdict: AuditVerdict
+    score: float = Field(ge=0.0, le=1.0)
+    signals: dict = {}
+    reasons: list[str] = []
+    cross_checks: dict = Field(
+        default_factory=dict,
+        description="claim-type -> primary dataset a human must check (e.g. refugee_figures -> UNHCR)",
+    )
+    llm_opinion: dict | None = None
+    engine: str = Field(description="e.g. rules-v1, rules-v1+claude-opus-5")
+
+
+# --- evidence: human-led external info that can change a decision ---
+
+class EvidenceDirection(str, Enum):
+    SUPPORTS = "supports"
+    CONTRADICTS = "contradicts"
+    CONTEXT = "context"
+
+
+class EvidenceIn(BaseModel):
+    url: HttpUrl
+    direction: EvidenceDirection
+    note: str = Field(min_length=5, description="What this source shows — required")
+
+
+class EvidenceOut(BaseModel):
+    evidence_id: str
+    event_id: str
+    submitted_by: str
+    url: str
+    direction: EvidenceDirection
+    note: str
+    source_tier: str
+    reachable: bool
+    covers_cross_check: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class EvidenceSummary(BaseModel):
+    """Aggregation: several independent opinions in the same direction, or a
+    covered cross-check, make an event ready for human re-review. The system
+    never changes the decision itself."""
+
+    supports: int
+    contradicts: int
+    context: int
+    distinct_domains: int
+    cross_checks_covered: list[str]
+    ready_for_rereview: bool
