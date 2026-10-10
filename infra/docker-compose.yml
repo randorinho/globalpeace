@@ -75,7 +75,7 @@ services:
     profiles: ["tunnel"]
     command: tunnel run
     environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN to run the tunnel}
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}  # required when running the tunnel profile
     depends_on:
       - api
 
