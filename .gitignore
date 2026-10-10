@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.next/
+*.log
+
+# Data (never commit raw source data or secrets)
+data/
+*.sqlite
+*.db
+secrets/
+*.pem
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
