@@ -15,6 +15,8 @@
   --gp-font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
   --gp-font-mono: "Roboto Mono", ui-monospace, monospace;
 
+  color-scheme: light;
+
   /* -- semantic roles (light theme) -- */
   --gp-bg:            #ffffff;
   --gp-surface:       #f4f6f5;
@@ -34,6 +36,7 @@
 }
 
 [data-theme="dark"], .gp-dark {
+  color-scheme: dark;
   --gp-bg:           var(--gp-slate-900);
   --gp-surface:      var(--gp-slate-600);
   --gp-ink:          #eef2f0;
