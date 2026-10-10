@@ -1,0 +1,50 @@
+/* globalpeace.ai design tokens
+   Typeface: Roboto (https://fonts.google.com/specimen/Roboto)
+   Palette:  #FDAC11 amber · #2A353D dark slate · #2B8C72 green
+             #63CDA3 mint  · #41484C slate grey                      */
+
+:root {
+  /* -- raw palette -- */
+  --gp-amber:      #FDAC11;
+  --gp-slate-900:  #2A353D;
+  --gp-green:      #2B8C72;
+  --gp-mint:       #63CDA3;
+  --gp-slate-600:  #41484C;
+
+  /* -- type -- */
+  --gp-font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gp-font-mono: "Roboto Mono", ui-monospace, monospace;
+
+  /* -- semantic roles (light theme) -- */
+  --gp-bg:            #ffffff;
+  --gp-surface:       #f4f6f5;
+  --gp-ink:           var(--gp-slate-900);
+  --gp-ink-muted:     var(--gp-slate-600);
+  --gp-primary:       var(--gp-green);      /* actions, links, brand */
+  --gp-primary-soft:  var(--gp-mint);       /* fills, hovers, charts */
+  --gp-alert:         var(--gp-amber);      /* alerts, CTAs — pair with dark ink, not white */
+  --gp-border:        #d7ddda;
+
+  /* verification-status colors (data model, docs/DATA_MODEL.md) */
+  --gp-status-verified:   var(--gp-green);
+  --gp-status-partial:    var(--gp-mint);
+  --gp-status-unverified: var(--gp-slate-600);
+  --gp-status-disputed:   var(--gp-amber);
+  --gp-status-retracted:  #8a6d6d;
+}
+
+[data-theme="dark"], .gp-dark {
+  --gp-bg:           var(--gp-slate-900);
+  --gp-surface:      var(--gp-slate-600);
+  --gp-ink:          #eef2f0;
+  --gp-ink-muted:    #aeb8b4;
+  --gp-primary:      var(--gp-mint);        /* mint carries contrast on dark */
+  --gp-primary-soft: var(--gp-green);
+  --gp-border:       #4e565b;
+}
+
+body {
+  font-family: var(--gp-font-sans);
+  background: var(--gp-bg);
+  color: var(--gp-ink);
+}
