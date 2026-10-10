@@ -25,6 +25,7 @@ function Card({ ev, selected, onClick }: { ev: GPEvent; selected: boolean; onCli
         <span className="headline">{ev.country}</span>
         <Badge status={ev.verification_status} />
       </div>
+      {ev.title && <span className="title">{ev.title}</span>}
       <span className="meta">
         {fmt(ev.date_time)} · conf {ev.confidence.toFixed(2)} · {ev.information_type}
       </span>
@@ -77,7 +78,7 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
   return (
     <div>
       <h2>
-        {ev.event_type} · {ev.country} <Badge status={ev.verification_status} />
+        {ev.title || `${ev.event_type} · ${ev.country}`} <Badge status={ev.verification_status} />
       </h2>
       <p className="sub">Reported {fmt(ev.date_time)} · {ev.information_type} · {ev.source_language}</p>
 

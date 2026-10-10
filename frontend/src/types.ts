@@ -4,6 +4,7 @@ export type EventType = "protest" | "attack" | "negotiation" | "displacement";
 
 export interface GPEvent {
   event_id: string;
+  title: string;
   date_time: string;
   location: { lat: number; lon: number } | null;
   country: string;

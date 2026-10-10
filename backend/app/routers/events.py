@@ -20,6 +20,7 @@ def _to_out(ev: Event) -> EventOut:
         loc = Location(lat=p.y, lon=p.x)
     return EventOut(
         event_id=ev.event_id,
+        title=ev.title,
         date_time=ev.date_time,
         location=loc,
         country=ev.country,
@@ -39,6 +40,7 @@ def _to_out(ev: Event) -> EventOut:
 @router.post("", response_model=EventOut, status_code=201)
 async def create_event(body: EventCreate, session: AsyncSession = Depends(get_session)):
     ev = Event(
+        title=body.title,
         date_time=body.date_time,
         country=body.country.upper(),
         actors=body.actors,

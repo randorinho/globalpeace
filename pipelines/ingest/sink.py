@@ -12,6 +12,7 @@ GATEWAY_SECRET = os.environ.get("GPAI_GATEWAY_SHARED_SECRET", "")
 
 def post_event(item: RawItem, event_type: str, confidence: float) -> dict:
     payload = {
+        "title": item.title[:500],
         "date_time": item.published.isoformat(),
         "country": item.country,
         "event_type": event_type,

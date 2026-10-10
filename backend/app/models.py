@@ -19,6 +19,7 @@ class Event(Base):
     event_id: Mapped[str] = mapped_column(
         String, primary_key=True, default=lambda: str(uuid.uuid4())
     )
+    title: Mapped[str] = mapped_column(String(500), default="")
     date_time: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     geom = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=True)
     country: Mapped[str] = mapped_column(String(2), index=True)

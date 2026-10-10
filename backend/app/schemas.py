@@ -40,6 +40,9 @@ class Location(BaseModel):
 
 
 class EventBase(BaseModel):
+    # Source-published headline. Only ever a title that the source itself made
+    # public — never a generated summary that could name or expose people.
+    title: str = Field(default="", max_length=500)
     date_time: datetime
     location: Location | None = None
     country: str = Field(min_length=2, max_length=2, description="ISO 3166-1 alpha-2")
