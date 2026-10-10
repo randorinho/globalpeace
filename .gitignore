@@ -28,3 +28,4 @@ worker-configuration.d.ts
 pipelines/.state/
 infra/.env
 infra/cloudflared/*.json
+pipelines/data/
