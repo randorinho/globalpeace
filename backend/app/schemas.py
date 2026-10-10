@@ -64,3 +64,34 @@ class EventOut(EventBase):
     last_updated: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- human review / verification (docs/GOVERNANCE.md: mandatory human review) ---
+
+class EventCorrections(BaseModel):
+    """Fields a reviewer may correct, each recorded in the audit trail."""
+
+    country: str | None = Field(default=None, min_length=2, max_length=2)
+    event_type: EventType | None = None
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
+class ReviewDecisionIn(BaseModel):
+    status: VerificationStatus
+    note: str = Field(min_length=5, description="Why — required; decisions are never silent")
+    sources_consulted: list[HttpUrl] = []
+    corrections: EventCorrections | None = None
+
+
+class ReviewRecordOut(BaseModel):
+    review_id: str
+    event_id: str
+    reviewer: str
+    previous_status: VerificationStatus
+    new_status: VerificationStatus
+    note: str
+    sources_consulted: list[str]
+    changes: dict
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

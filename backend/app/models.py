@@ -38,3 +38,22 @@ class Event(Base):
     last_updated: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
     )
+
+
+class ReviewDecision(Base):
+    """Append-only audit trail. No update or delete path exists in the API;
+    production should also revoke UPDATE/DELETE on this table at the DB level."""
+
+    __tablename__ = "review_decisions"
+
+    review_id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    event_id: Mapped[str] = mapped_column(String, index=True)
+    reviewer: Mapped[str] = mapped_column(String)
+    previous_status: Mapped[VerificationStatus] = mapped_column(String)
+    new_status: Mapped[VerificationStatus] = mapped_column(String)
+    note: Mapped[str] = mapped_column(String)
+    sources_consulted: Mapped[list] = mapped_column(JSON, default=list)
+    changes: Mapped[dict] = mapped_column(JSON, default=dict)  # field → {from, to}
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
