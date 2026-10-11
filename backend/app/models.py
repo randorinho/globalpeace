@@ -98,3 +98,19 @@ class Contribution(Base):
     url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     status: Mapped[str] = mapped_column(String, default="received", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class HRAPosition(Base):
+    """Append-only published positions of the Human Rights Agent."""
+
+    __tablename__ = "hra_positions"
+
+    position_id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    statement: Mapped[str] = mapped_column(String(4000))
+    vitals: Mapped[dict] = mapped_column(JSON, default=dict)
+    priorities: Mapped[list] = mapped_column(JSON, default=list)
+    platform_audit: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    engine: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

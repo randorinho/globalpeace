@@ -48,6 +48,7 @@ See the full documentation:
 | [docs/references/apdsi-un-charter-reform.md](docs/references/apdsi-un-charter-reform.md) | APDSI letter: UN Charter reform proposal on autonomous-systems governance (reference) |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | Internal backlog — P0 operational trust → P2 Solutions Engine → DevEx |
 | [docs/REVIEW_SECURITY_POLICY.md](docs/REVIEW_SECURITY_POLICY.md) | DRAFT — controls required before human-review expansion; interim AI-corroboration regime |
+| [docs/HUMAN_RIGHTS_AGENT.md](docs/HUMAN_RIGHTS_AGENT.md) | Independent HRA: vitals immune system, development auditor, published position |
 
 ## Repository layout
 

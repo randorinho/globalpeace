@@ -32,5 +32,7 @@ PY="$REPO/.venv/bin/python"
   "$PY" -m ingest.run 2>&1
   echo "--- audit (continental desks; degrades to rules without API key)"
   "$PY" -m audit.run --with-desks 2>&1
+  echo "--- human rights agent (vitals + dev audit + published position)"
+  "$PY" -m hra.run 2>&1
   echo "=== run end $(date -u +%FT%TZ)"
 } >> "$LOG" 2>&1

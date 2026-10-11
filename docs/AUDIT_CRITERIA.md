@@ -31,6 +31,16 @@ because 3 is incomplete. That is the normal case, not a failure.
 | Specificity | has title, has source URL, has location, has actors |
 | Cross-check matrix | displacement/refugee figures → UNHCR · conflict-event counts → ACLED dataset · price/market figures → FEWS NET market data + local monitoring · "affected N people" → interpret per ACLED methodology |
 
+## Interim machine-corroboration regime
+
+Under docs/REVIEW_SECURITY_POLICY.md (interim regime), events meeting strict
+criteria may be published as `ai_corroborated` — explicitly labeled machine
+corroboration, never human verification, never overriding a human decision.
+Promotion is **fail-closed** (withheld unless the analyst panel actually ran
+with zero consensus objections) and **exposure-gated** (events naming actors
+or carrying exact coordinates are not auto-published) — both controls
+originate from the Human Rights Agent's self-audit of the platform.
+
 ## Verdicts
 
 - `credible_recent` — institutional source, fresh/recent, corroborated,

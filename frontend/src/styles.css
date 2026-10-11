@@ -264,3 +264,30 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 }
 .restricted p { margin: 0; color: var(--gp-ink-muted); }
 .restricted a { color: var(--gp-primary); }
+
+/* Human Rights Agent panel */
+.hra { margin-top: 26px; border: 1px solid var(--gp-border); border-radius: 8px; background: var(--gp-surface); padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; }
+.hra-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.hra h3 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+.hra-meta { font: 400 11.5px var(--gp-font-mono); color: var(--gp-ink-muted); }
+.hra-statement { margin: 0; max-width: 78ch; font-size: 14.5px; border-left: 3px solid var(--gp-primary); padding-left: 12px; }
+.hra-cols { display: flex; flex-wrap: wrap; gap: 24px; }
+.hra-vitals { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
+.hra-country { display: flex; flex-direction: column; gap: 4px; }
+.hra-cname { font-weight: 600; font-size: 13.5px; }
+.hra-vital { display: grid; grid-template-columns: 150px 1fr 70px; gap: 8px; align-items: center; }
+.hra-vlabel { font: 400 12px var(--gp-font-mono); color: var(--gp-ink-muted); }
+.hra-bar { height: 7px; border-radius: 4px; background: var(--gp-border); overflow: hidden; display: block; }
+.hra-bar i { display: block; height: 100%; border-radius: 4px; }
+.lv-alarm { background: var(--gp-alert); }
+.lv-concern { background: var(--gp-primary); }
+.lv-watch { background: var(--gp-ink-muted); }
+.hra-lv { font: 500 10.5px var(--gp-font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.lv-t-alarm { color: color-mix(in srgb, var(--gp-alert) 60%, var(--gp-ink)); }
+.lv-t-concern { color: var(--gp-primary); }
+.lv-t-watch { color: var(--gp-ink-muted); }
+.hra-actions { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 8px; }
+.hra-actions h4 { margin: 0; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gp-ink-muted); font-weight: 500; }
+.hra-action { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.hra-atext { color: var(--gp-ink); }
+.hra-selfaudit { margin-top: 6px; font-size: 12.5px; color: var(--gp-ink-muted); border-top: 1px solid var(--gp-border); padding-top: 8px; }

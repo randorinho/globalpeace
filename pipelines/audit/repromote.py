@@ -23,8 +23,12 @@ def main() -> None:
         tier, _ = source_tier(ev.get("source_urls", []))
         rec, _, _ = recency(ev["date_time"], now)
         corrob = corroboration(ev, evs)
-        consensus = (ev["ai_audit"].get("llm_opinion") or {}).get("consensus_count", 0)
-        if tier == "institutional" and rec != "stale" and corrob >= 1 and consensus == 0:
+        op = ev["ai_audit"].get("llm_opinion") or {}
+        panel_ran = bool(op.get("panelists"))
+        consensus = op.get("consensus_count", 0)
+        exposed = bool(ev.get("actors")) or ev.get("location") is not None
+        if (tier == "institutional" and rec != "stale" and corrob >= 1
+                and panel_ran and consensus == 0 and not exposed):
             r = httpx.post(f"{API_URL}/events/{ev['event_id']}/ai-corroborate",
                            headers=api_headers(), timeout=30)
             if r.status_code == 200:
