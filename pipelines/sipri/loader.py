@@ -66,10 +66,8 @@ def parse(text: str) -> list[Transfer]:
         supplier, recipient = _col(row, "supplier"), _col(row, "recipient")
         if not supplier or not recipient:
             continue
-        estimated = any(
-            (row.get(k) or row.get(k.title()) or "").strip().lower() in ("1", "yes", "true", "*")
-            for k in ESTIMATE_MARKERS
-        )
+        lowered = {(k or "").strip().lower(): (v or "").strip().lower() for k, v in row.items()}
+        estimated = any(lowered.get(k, "") in ("1", "yes", "true", "*") for k in ESTIMATE_MARKERS)
         transfers.append(Transfer(
             supplier=supplier, recipient=recipient,
             designation=_col(row, "designation"), description=_col(row, "description"),
