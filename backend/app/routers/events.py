@@ -109,3 +109,39 @@ async def audit_event(
     await session.commit()
     await session.refresh(ev)
     return _to_out(ev)
+
+
+@router.post("/{event_id}/ai-corroborate", response_model=EventOut)
+async def ai_corroborate(event_id: str, session: AsyncSession = Depends(get_session)):
+    """Machine corroboration (docs/AUDIT_CRITERIA.md): promote unverified ->
+    ai_corroborated when the audit pipeline's criteria pass. Strictly bounded:
+    only ever FROM unverified — any human decision (verified, disputed,
+    retracted, partially_verified) is untouchable by machines. The transition
+    is recorded in the same append-only decision trail as human reviews,
+    attributed to the pipeline."""
+    from ..models import ReviewDecision
+    from ..schemas import VerificationStatus
+
+    ev = await session.get(Event, event_id)
+    if ev is None:
+        raise HTTPException(404, "event not found")
+    if ev.verification_status != VerificationStatus.UNVERIFIED:
+        raise HTTPException(409, f"only unverified events can be ai-corroborated (is: {ev.verification_status})")
+    if not ev.ai_audit:
+        raise HTTPException(409, "no AI audit on record")
+
+    record = ReviewDecision(
+        event_id=event_id,
+        reviewer="ai-pipeline(continental-desks)",
+        previous_status=ev.verification_status,
+        new_status=VerificationStatus.AI_CORROBORATED,
+        note="Machine corroboration: institutional source, independent corroboration, recent, "
+             "no panel-consensus objections. Labeled ai_corroborated publicly; awaiting optional human review.",
+        sources_consulted=[],
+        changes={},
+    )
+    ev.verification_status = VerificationStatus.AI_CORROBORATED
+    session.add(record)
+    await session.commit()
+    await session.refresh(ev)
+    return _to_out(ev)

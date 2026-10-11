@@ -69,7 +69,23 @@ def main() -> None:
                     if audit["verdict"] == "credible_recent":
                         audit["verdict"] = "needs_additional_verification"  # doubt only downgrades
 
+    def promotable(ev: dict, audit: dict) -> bool:
+        """ai_corroborated criteria: institutional source, independently
+        corroborated, fresh/recent, and — when a desk panel ran — zero
+        consensus-level objections. Pending cross-checks remain visible as
+        caveats; promotion never implies human verification."""
+        sig = audit["signals"]
+        if sig["source_tier"] != "institutional" or sig["recency"] == "stale":
+            return False
+        if sig["corroborating_events"] < 1:
+            return False
+        op = audit.get("llm_opinion")
+        if op and op.get("consensus_count", 0) > 0:
+            return False
+        return ev.get("verification_status") == "unverified"
+
     counts: dict[str, int] = {}
+    promoted = 0
     for ev in targets:
         audit = audits[ev["event_id"]]
         counts[audit["verdict"]] = counts.get(audit["verdict"], 0) + 1
@@ -79,7 +95,13 @@ def main() -> None:
             continue
         r = httpx.post(f"{API_URL}/events/{ev['event_id']}/audit", json=audit, timeout=30, headers=api_headers())
         r.raise_for_status()
+        if promotable(ev, audit):
+            pr = httpx.post(f"{API_URL}/events/{ev['event_id']}/ai-corroborate", timeout=30, headers=api_headers())
+            if pr.status_code == 200:
+                promoted += 1
+                label += " -> ai_corroborated"
         print(label)
+    counts["promoted_ai_corroborated"] = promoted
     print(json.dumps(counts))
 
 

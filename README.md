@@ -47,6 +47,7 @@ See the full documentation:
 | [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) | Edge/origin split — domain and edge layer on Cloudflare |
 | [docs/references/apdsi-un-charter-reform.md](docs/references/apdsi-un-charter-reform.md) | APDSI letter: UN Charter reform proposal on autonomous-systems governance (reference) |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | Internal backlog — P0 operational trust → P2 Solutions Engine → DevEx |
+| [docs/REVIEW_SECURITY_POLICY.md](docs/REVIEW_SECURITY_POLICY.md) | DRAFT — controls required before human-review expansion; interim AI-corroboration regime |
 
 ## Repository layout
 

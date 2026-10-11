@@ -28,6 +28,7 @@ class EventType(str, Enum):
 
 class VerificationStatus(str, Enum):
     UNVERIFIED = "unverified"
+    AI_CORROBORATED = "ai_corroborated"  # machine-corroborated, labeled as such; never overrides a human decision
     PARTIALLY_VERIFIED = "partially_verified"
     VERIFIED = "verified"
     DISPUTED = "disputed"

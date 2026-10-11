@@ -94,23 +94,45 @@ def required_cross_checks(text: str) -> dict[str, str]:
     return checks
 
 
-def corroboration(event: dict, all_events: list[dict]) -> int:
-    """Other events, same country, within ±7 days, from a different source domain."""
-    def domains(ev):
-        return {urlparse(u).hostname for u in ev.get("source_urls", [])}
+# Publisher identification: independence means different ORIGINATING
+# organisations, not different URLs — a clearing house (ReliefWeb) hosts many
+# publishers under one domain (flagged by the Africa desk's corroboration
+# analyst on first live run).
+PUBLISHERS = (
+    "UNHCR", "WFP", "OCHA", "IOM", "MSF", "WHO", "UNICEF", "ICRC", "FEWS",
+    "Key Message Update",  # FEWS NET series title
+    "Bureau de Coordination", "Qatar Charity", "FAO", "NRC", "ACLED",
+)
 
+
+def publisher_of(event: dict) -> str:
+    title = (event.get("title") or "").upper()
+    for p in PUBLISHERS:
+        if p.upper() in title:
+            return "FEWS NET" if p in ("FEWS", "Key Message Update") else p
+    # fallback: the source domain (conservative — clearing-house items
+    # without a recognisable publisher cannot corroborate each other)
+    for u in event.get("source_urls", []):
+        return urlparse(u).hostname or "unknown"
+    return "unknown"
+
+
+def corroboration(event: dict, all_events: list[dict]) -> int:
+    """Other events, same country, within ±7 days, from a different
+    originating publisher (title-derived; domain as fallback)."""
     dt = datetime.fromisoformat(event["date_time"].replace("Z", "+00:00"))
-    mine = domains(event)
-    n = 0
+    mine = publisher_of(event)
+    seen: set[str] = set()
     for other in all_events:
         if other["event_id"] == event["event_id"] or other["country"] != event["country"]:
             continue
         odt = datetime.fromisoformat(other["date_time"].replace("Z", "+00:00"))
         if abs((odt - dt).total_seconds()) > 7 * 86400:
             continue
-        if domains(other) - mine:
-            n += 1
-    return n
+        p = publisher_of(other)
+        if p != mine and p != "unknown":
+            seen.add(p)
+    return len(seen)
 
 
 def audit_event(event: dict, all_events: list[dict], now: datetime | None = None) -> dict:

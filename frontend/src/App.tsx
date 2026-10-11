@@ -4,6 +4,8 @@ import { fetchContributions, fetchEvidence, fetchHistory, fetchQueue, postEviden
 import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, VerificationStatus } from "./types";
 
 const STATUSES: VerificationStatus[] = ["verified", "partially_verified", "disputed", "retracted"];
+
+const LENS_RE = /^\[([a-z_]+)\]\s*/;
 const TYPES: EventType[] = ["protest", "attack", "negotiation", "displacement"];
 
 const fmt = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC";
@@ -134,23 +136,54 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
         </dd>
       </dl>
 
-      {ev.ai_audit && (
-        <div className="audit-panel">
-          <h3>
-            AI audit — advisory only
-            <span className={`audit-chip a-${ev.ai_audit.verdict}`}>
-              {ev.ai_audit.verdict.replace(/_/g, " ")} · {ev.ai_audit.score.toFixed(2)}
-            </span>
-          </h3>
-          <ul>
-            {ev.ai_audit.reasons.map((r) => <li key={r}>{r}</li>)}
-          </ul>
-          {typeof ev.ai_audit.llm_opinion?.reviewer_summary === "string" && (
-            <p className="analyst">Analyst: {ev.ai_audit.llm_opinion.reviewer_summary}</p>
-          )}
-          <span className="engine">{ev.ai_audit.engine} · human review always required</span>
-        </div>
-      )}
+      {ev.ai_audit && (() => {
+        const audit = ev.ai_audit;
+        const op = (audit.llm_opinion ?? null) as {
+          desk?: string; panelists?: number; consensus_count?: number;
+          concerns?: string[]; digest_notes?: string[];
+        } | null;
+        const ruleReasons = audit.reasons.filter((r) => !LENS_RE.test(r));
+        const byAgent = new Map<string, string[]>();
+        for (const c of op?.concerns ?? []) {
+          const m = LENS_RE.exec(c);
+          const agent = m ? m[1] : "analyst";
+          byAgent.set(agent, [...(byAgent.get(agent) ?? []), c.replace(LENS_RE, "")]);
+        }
+        return (
+          <div className="audit-panel">
+            <h3>
+              AI audit — advisory only
+              <span className={`audit-chip a-${audit.verdict}`}>
+                {audit.verdict.replace(/_/g, " ")} · {audit.score.toFixed(2)}
+              </span>
+            </h3>
+            <ul>{ruleReasons.map((r) => <li key={r}>{r}</li>)}</ul>
+            {op && (
+              <div className="agents">
+                <span className="agents-head">
+                  Desk {op.desk} · {op.panelists} analyst agents
+                  {typeof op.consensus_count === "number" && op.consensus_count > 0 &&
+                    ` · ${op.consensus_count} consensus objection(s)`}
+                </span>
+                {[...byAgent.entries()].map(([agent, items]) => (
+                  <details className="agent" key={agent}>
+                    <summary>{agent.replace(/_/g, " ")} — {items.length} concern(s)</summary>
+                    <ul>{items.map((c) => <li key={c}>{c}</li>)}</ul>
+                  </details>
+                ))}
+                {byAgent.size === 0 && <span className="agents-clear">No concerns raised by the panel.</span>}
+                {(op.digest_notes ?? []).length > 0 && (
+                  <details className="agent">
+                    <summary>digest-level notes</summary>
+                    <ul>{(op.digest_notes ?? []).map((n) => <li key={n}>{n}</li>)}</ul>
+                  </details>
+                )}
+              </div>
+            )}
+            <span className="engine">{audit.engine} · machine opinions never verify</span>
+          </div>
+        );
+      })()}
 
       <div className="evidence">
         <h3>

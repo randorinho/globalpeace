@@ -226,3 +226,11 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .contribute textarea { min-height: 64px; resize: vertical; }
 .contribute .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .contribute .ok, .contribute .err { font-size: 12.5px; }
+
+/* ai_corroborated status + agent process panel */
+.b-ai_corroborated { background: color-mix(in srgb, var(--gp-slate-600) 16%, transparent); color: var(--gp-ink-muted); }
+.agents { display: flex; flex-direction: column; gap: 6px; }
+.agents-head { font: 500 12px var(--gp-font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--gp-ink-muted); }
+.agent summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gp-ink); padding: 3px 0; }
+.agent ul { margin: 4px 0 8px; padding-left: 18px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.agents-clear { font-size: 13px; color: var(--gp-status-verified); }

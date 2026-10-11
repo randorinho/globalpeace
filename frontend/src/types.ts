@@ -1,5 +1,5 @@
 export type VerificationStatus =
-  | "unverified" | "partially_verified" | "verified" | "disputed" | "retracted";
+  | "unverified" | "ai_corroborated" | "partially_verified" | "verified" | "disputed" | "retracted";
 export type EventType = "protest" | "attack" | "negotiation" | "displacement";
 
 export interface AIAudit {

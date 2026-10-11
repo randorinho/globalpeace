@@ -28,6 +28,27 @@ sources:
     confidence: 0.5
     limit: 10
 
+  - id: reliefweb-ss
+    kind: rss
+    url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC8657%29"
+    country: SS
+    confidence: 0.5
+    limit: 10
+
+  - id: reliefweb-cd
+    kind: rss
+    url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC75%29"
+    country: CD
+    confidence: 0.5
+    limit: 10
+
+  - id: reliefweb-ht
+    kind: rss
+    url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC113%29"
+    country: HT
+    confidence: 0.5
+    limit: 10
+
   # IOM (International Organization for Migration / UN Migration) — org feed
   # via ReliefWeb (iom.int blocks direct RSS). Covers displacement and migrant
   # casualties; items matched to pilot countries by name.

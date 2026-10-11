@@ -21,7 +21,11 @@ from .events import _to_out
 
 router = APIRouter(prefix="/public", tags=["public"])
 
-PUBLIC_STATUSES = (VerificationStatus.VERIFIED, VerificationStatus.PARTIALLY_VERIFIED)
+PUBLIC_STATUSES = (
+    VerificationStatus.VERIFIED,
+    VerificationStatus.PARTIALLY_VERIFIED,
+    VerificationStatus.AI_CORROBORATED,  # published with an explicit machine label
+)
 
 
 @router.get("/events", response_model=list[EventOut])
