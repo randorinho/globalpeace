@@ -17,11 +17,11 @@ The platform is live at globalpeace.ai; these make it dependable.
 - [ ] **Migrate origin off the laptop** — VPS or small cloud box running the
       compose stack + tunnel; laptop closing currently takes the data layer down
 - [ ] **Alembic migrations** — replace startup `create_all` + manual `ALTER TABLE`
-- [ ] **Deploy guard** — `deploy.sh` that refuses to run off `main`
+- [x] **Deploy guard** — `deploy.sh` that refuses to run off `main`
       (compose rebuild + `wrangler deploy` as one ritual); branch flow is dev → main
-- [ ] **Scheduled pipeline runs** — ingestion every 30 min, audit after each
+- [x] **Scheduled pipeline runs** — ingestion every 30 min, audit after each
       ingest run (cron/launchd now; Cloudflare Cron Triggers + Queues later)
-- [ ] **Anthropic API credentials on the pipeline host** — activates the six
+- [x] **Anthropic API credentials on the pipeline host** — activates the six
       continental audit desks (code shipped, degrades to rules-only today)
 - [ ] **Cloudflare Access on review APIs** — reviewer login via Access,
       identity from `cf-access-authenticated-user-email`; then open
@@ -36,7 +36,7 @@ The platform is live at globalpeace.ai; these make it dependable.
       the cross-check target the audit matrix already names
 - [ ] **UNHCR data portal connector** — refugee/displacement figures
       (the other named cross-check primary)
-- [ ] **Source expansion** — remaining pilot countries (SS, CD, HT feeds),
+- [x] **Source expansion** — remaining pilot countries (SS, CD, HT feeds),
       local-language/independent outlets per region
 - [ ] **Geolocation extraction** — place names → coordinates with explicit
       precision flags (country/admin1/exact); map already renders the distinction
@@ -53,9 +53,9 @@ The platform is live at globalpeace.ai; these make it dependable.
 Everything here produces `recommendation`-type information (docs/DATA_MODEL.md):
 drafted by machine, dispatched by an accountable human, auditable end to end.
 
-- [ ] **Situation clustering** — group reviewed events into situations
+- [x] **Situation clustering** — group reviewed events into situations
       (country + period + theme) as the unit solutions attach to
-- [ ] **Solution generator** — per situation, AI drafts preventive options from
+- [x] **Solution generator** (shipped beyond spec: political + economic lensed agents, falsification conditions, public rendering) — per situation, AI drafts preventive options from
       the playbook in docs/ARCHITECTURE.md (activate dialogue channels, mediator
       contacts, civilian protection, humanitarian assistance, disinformation
       correction, local-organisation support) — every option carries cited
@@ -72,7 +72,7 @@ drafted by machine, dispatched by an accountable human, auditable end to end.
 - [ ] **Mediator/contact registry** — vetted organisations per region, with
       consent and channel preferences
 
-- [ ] **HRA follow-ups** — decide whether provisional-vetted sources may count
+- [~] **HRA follow-ups** — hard expiry granted (2027-01-11); open: provisional-vetted as corroborators, header-identity rejection at Access activation — decide whether provisional-vetted sources may count
       as corroborating publishers (they cannot promote); reject header-asserted
       reviewer identity in code at Access activation (policy-bound); review the
       HRA's standing exposure/bias observations each cycle
@@ -89,9 +89,9 @@ drafted by machine, dispatched by an accountable human, auditable end to end.
 
 ## Development environment (DevEx)
 
-- [ ] **GitHub remote + CI** — push the repo; Actions running `tsc --noEmit`,
+- [x] **GitHub remote + CI** — push the repo; Actions running `tsc --noEmit`,
       frontend build, backend import check, pipeline unit tests on PRs to dev/main
-- [ ] **Test suites** — pytest for API (review/evidence/audit invariants are the
+- [~] **Test suites** — pipeline units + governance invariants green in CI; API integration tests and vitest still open — pytest for API (review/evidence/audit invariants are the
       crown jewels: retraction gate, claim→fact only via verified, honeypot),
       parser tests (ingest, SIPRI fixture), vitest for frontend
 - [ ] **Pre-commit hooks** — ruff + eslint/prettier
@@ -102,3 +102,12 @@ drafted by machine, dispatched by an accountable human, auditable end to end.
 - [ ] **Secrets documentation** — what lives where (wrangler secrets,
       infra/.env, tunnel credentials), rotation steps
 - [x] dev/main branch flow; secrets gitignored and verified out of history
+
+## Shipped since this backlog was written (not originally listed)
+
+- [x] Source-vetting subsystem (3-lens panel, trust registry, append-only audit log, ratification CLI; Radio Dabanga ratified)
+- [x] Human Rights Agent: vitals immune system, development self-auditor, published positions (its 3 findings decided: parity fix, hard expiry, actor-graph bounds)
+- [x] Continental audit desks (6 desks x 6 lensed agents) + fail-closed, exposure-gated machine corroboration (ai_corroborated tier)
+- [x] Public verification trails + compliance layer (docs/COMPLIANCE.md, closed-context agents, sanitized public data)
+- [x] Public frontend at globalpeace.ai (map, trust-ladder legend, HRA panel, peace approaches, contribution form)
+- [x] IOM connector + migrant-casualty cross-check; verification-status color ladder (DESIGN.md)
