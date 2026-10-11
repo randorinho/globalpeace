@@ -64,7 +64,11 @@ that power auditable, distributed, and revocable.
 ## Sunset of the interim regime (decision on HRA finding #2)
 
 The machine-corroboration regime is **transitional by design**: it ends
-automatically when this policy's activation checklist completes. From that
+automatically when this policy's activation checklist completes — and in any
+case **no later than 2027-01-11** (hard expiry, per the HRA's recommendation:
+a checklist can slip; a date cannot). If the checklist is not complete by
+then, `ai_corroborated` reverts to a queueing label and public tiers revert
+to human decisions only. From that
 point, `ai_corroborated` becomes a queueing label only — publication tiers
 revert to human decisions. The Human Rights Agent continues to publish the
 compliance tension until then; that persistent public record is intentional.
