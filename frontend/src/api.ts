@@ -53,3 +53,10 @@ export async function postEvidence(
   );
   return (await res.json()) as EvidenceItem;
 }
+
+export async function fetchContributions(eventId: string, reviewer: string) {
+  const res = await check(
+    await fetch(`${BASE}/events/${eventId}/contributions`, { headers: { "x-reviewer": reviewer } }),
+  );
+  return (await res.json()) as { contribution_id: string; text: string; url: string | null; status: string; created_at: string }[];
+}

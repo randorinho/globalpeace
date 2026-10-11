@@ -18,8 +18,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import get_session
-from ..models import Event, Evidence
-from ..schemas import EvidenceIn, EvidenceOut, EvidenceSummary
+from ..models import Contribution, Event, Evidence
+from ..schemas import ContributionOut, EvidenceIn, EvidenceOut, EvidenceSummary
 from .review import get_reviewer
 
 router = APIRouter(tags=["evidence"])
@@ -132,3 +132,20 @@ async def list_evidence(event_id: str, session: AsyncSession = Depends(get_sessi
         "items": [EvidenceOut.model_validate(r) for r in rows],
         "summary": summarize(rows),
     }
+
+
+@router.get("/events/{event_id}/contributions")
+async def list_contributions(
+    event_id: str,
+    reviewer: str = Depends(get_reviewer),
+    session: AsyncSession = Depends(get_session),
+):
+    """Reviewer-side view of public contributions tied to an event.
+    Incorporation is manual: a reviewer validates and attaches as evidence."""
+    rows = (
+        (await session.execute(
+            select(Contribution).where(Contribution.event_id == event_id)
+            .order_by(Contribution.created_at.asc())
+        )).scalars().all()
+    )
+    return [ContributionOut.model_validate(r) for r in rows]

@@ -52,3 +52,23 @@ path always human-routed).
 A Claude analyst can add a second opinion (concerns the rules missed, summary
 for the reviewer). It is advisory: it cannot change the rules verdict upward,
 only flag additional doubt. Runs only when API credentials are configured.
+
+## Continental analyst desks (pipelines/audit/continents.py, desks.py)
+
+The LLM layer is organised as **six continental desks** — Africa, Asia,
+Europe, North America, South America, Oceania — each deploying a panel of
+**six analyst agents** over its region's current reporting digest. Each
+panelist analyses the same digest under a distinct lens: source criticism,
+methodology, regional context, corroboration independence, temporal
+consistency, humanitarian impact.
+
+Aggregation (same-direction opinions): every concern is attributed to its
+lens; concerns raised independently by two or more panelists are counted as
+panel consensus. Panels are advisory — any concern can downgrade
+`credible_recent` to `needs_additional_verification`, and nothing a panel
+says can upgrade a verdict or mark anything verified. Desks run only where
+there are unaudited events, and the pipeline degrades to rules-only when the
+LLM layer is unavailable.
+
+Run: `python -m audit.run --with-desks` (panel size configurable via
+`--panel-size`; requires Anthropic API credentials on the pipeline host).

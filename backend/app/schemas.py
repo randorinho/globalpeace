@@ -165,3 +165,27 @@ class EvidenceSummary(BaseModel):
     distinct_domains: int
     cross_checks_covered: list[str]
     ready_for_rereview: bool
+
+
+# --- public contributions (docs/GOVERNANCE.md: public participation) ---
+
+class ContributionIn(BaseModel):
+    """Minimal public submission. Always enters as an unverified claim for
+    moderation — never incorporated automatically. No account, no PII asked."""
+
+    text: str = Field(min_length=10, max_length=2000)
+    url: HttpUrl | None = None
+    event_id: str | None = Field(default=None, max_length=64)
+    # Honeypot: humans never see this field; bots fill it. Must stay empty.
+    website: str = Field(default="", max_length=0)
+
+
+class ContributionOut(BaseModel):
+    contribution_id: str
+    event_id: str | None
+    text: str
+    url: str | None
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

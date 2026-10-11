@@ -4,15 +4,19 @@ Governance (docs/GOVERNANCE.md): the public layer shows exclusively events a
 human reviewer has confirmed (verified or partially_verified). Claims under
 review, disputed and retracted events never appear here.
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+import hashlib
+import re
+import time
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from neo4j import AsyncGraphDatabase
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..db import get_session
-from ..models import Event
-from ..schemas import EventOut, VerificationStatus
+from ..models import Contribution, Event
+from ..schemas import ContributionIn, ContributionOut, EventOut, VerificationStatus
 from .events import _to_out
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -72,3 +76,49 @@ async def arms_transfers(
         "transfers": [dict(rec["transfer"], supplier=rec["supplier"], recipient=rec["recipient"])
                       for rec in records],
     }
+
+
+# ---- public contributions: minimal, spam-gated, never auto-incorporated ----
+
+_RATE: dict[str, list[float]] = {}
+RATE_MAX, RATE_WINDOW = 5, 3600  # 5 submissions per hour per client
+
+PII_PATTERNS = re.compile(
+    r"\b[\w.+-]+@[\w-]+\.[\w.]+\b|\+?\d[\d\s().-]{8,}\d"
+)
+
+
+def _client_key(request: Request) -> str:
+    ip = request.headers.get("cf-connecting-ip") or (request.client.host if request.client else "?")
+    # hashed, in-memory only — never persisted (data minimisation)
+    return hashlib.sha256(ip.encode()).hexdigest()[:16]
+
+
+@router.post("/contributions", response_model=ContributionOut, status_code=202)
+async def submit_contribution(
+    body: ContributionIn, request: Request, session: AsyncSession = Depends(get_session)
+):
+    """Public submissions enter the moderation pipeline as claims
+    (docs/GOVERNANCE.md). Honeypot, rate limit, size caps, PII screen."""
+    now = time.monotonic()
+    key = _client_key(request)
+    window = [t for t in _RATE.get(key, []) if now - t < RATE_WINDOW]
+    if len(window) >= RATE_MAX:
+        raise HTTPException(429, "rate limit: try again later")
+    _RATE[key] = window + [now]
+
+    text = body.text.strip()
+    if PII_PATTERNS.search(text):
+        raise HTTPException(
+            422,
+            "please remove personal data (emails, phone numbers) — testimonies are pseudonymised by design",
+        )
+    if body.event_id and await session.get(Event, body.event_id) is None:
+        raise HTTPException(404, "referenced event not found")
+
+    record = Contribution(event_id=body.event_id, text=text,
+                          url=str(body.url) if body.url else None)
+    session.add(record)
+    await session.commit()
+    await session.refresh(record)
+    return record

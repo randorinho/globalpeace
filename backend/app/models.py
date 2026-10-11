@@ -80,3 +80,21 @@ class Evidence(Base):
     reachable: Mapped[bool] = mapped_column(Boolean, default=False)
     covers_cross_check: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class Contribution(Base):
+    """Public contribution awaiting moderation (docs/GOVERNANCE.md workflow:
+    contribution -> spam/PII screen -> classification -> verification ->
+    moderator review). Stored as a claim; incorporation is a human act
+    (typically: a reviewer attaches it as evidence)."""
+
+    __tablename__ = "contributions"
+
+    contribution_id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    event_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    text: Mapped[str] = mapped_column(String(2000))
+    url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    status: Mapped[str] = mapped_column(String, default="received", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

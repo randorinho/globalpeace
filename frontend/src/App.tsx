@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Home from "./Home";
-import { fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
+import { fetchContributions, fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
 import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, VerificationStatus } from "./types";
 
 const STATUSES: VerificationStatus[] = ["verified", "partially_verified", "disputed", "retracted"];
@@ -48,6 +48,8 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
   const [evNote, setEvNote] = useState("");
   const [evMsg, setEvMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const [contributions, setContributions] = useState<Awaited<ReturnType<typeof fetchContributions>>>([]);
+
   const loadEvidence = () =>
     fetchEvidence(ev.event_id).then(setEvidence).catch(() => setEvidence(null));
   const [status, setStatus] = useState<VerificationStatus | null>(null);
@@ -64,6 +66,7 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
     fetchHistory(ev.event_id).then(setHistory).catch(() => setHistory([]));
     setEvUrl(""); setEvNote(""); setEvMsg(null);
     loadEvidence();
+    if (reviewer) fetchContributions(ev.event_id, reviewer).then(setContributions).catch(() => setContributions([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ev.event_id]);
 
@@ -193,6 +196,20 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
         </div>
         {evMsg && <span className={evMsg.ok ? "ok" : "err"}>{evMsg.text}</span>}
       </div>
+
+      {contributions.length > 0 && (
+        <div className="evidence">
+          <h3>Public contributions — moderation queue</h3>
+          {contributions.map((c) => (
+            <div className="ev-row" key={c.contribution_id}>
+              <span className="ev-dir d-context">{c.status}</span>
+              {c.url && <a href={c.url} target="_blank" rel="noreferrer">{new URL(c.url).hostname}</a>}
+              <span className="ev-note">{c.text}</span>
+            </div>
+          ))}
+          <span className="ev-summary">Incorporation is manual: validate and attach as evidence above.</span>
+        </div>
+      )}
 
       <div className="decision">
         <h3>Decision</h3>
