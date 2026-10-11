@@ -305,3 +305,6 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .sol-conf { font: 400 11px var(--gp-font-mono); color: var(--gp-ink-muted); }
 .sol-why { color: var(--gp-ink-muted); }
 .sol-risk { color: color-mix(in srgb, var(--gp-alert) 45%, var(--gp-ink)); }
+
+.related-link { color: var(--gp-ink); text-decoration: none; font-weight: 500; }
+.related-link:hover { color: var(--gp-primary); }
