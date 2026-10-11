@@ -79,8 +79,14 @@ def main() -> None:
             return False
         if sig["corroborating_events"] < 1:
             return False
+        # Fail-closed (HRA self-audit finding): if the analyst panel did not
+        # actually run, machine corroboration is withheld, not granted.
         op = audit.get("llm_opinion")
-        if op and op.get("consensus_count", 0) > 0:
+        if not op or not op.get("panelists") or op.get("consensus_count", 0) > 0:
+            return False
+        # Exposure gate (HRA self-audit finding): named actors or exact
+        # coordinates raise targeting risk — publication of those needs a human.
+        if ev.get("actors") or ev.get("location") is not None:
             return False
         return ev.get("verification_status") == "unverified"
 

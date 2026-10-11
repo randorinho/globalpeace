@@ -110,6 +110,12 @@ export default function Home() {
   const mapDiv = useRef<HTMLDivElement>(null);
   const [events, setEvents] = useState<GPEvent[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [hra, setHra] = useState<{
+    statement: string; created_at: string; engine: string;
+    vitals: Record<string, { pressure: number; vitals: Record<string, { score: number; level: string }> }>;
+    priorities: { country: string; vital: string; level: string; dispatch: string; score: number; action: string }[];
+    platform_audit: { overall?: string; recommendations?: string[]; exposure_risks?: string[] } | null;
+  } | null>(null);
   const [err, setErr] = useState("");
   // contribution form
   const [cText, setCText] = useState("");
@@ -122,6 +128,8 @@ export default function Home() {
       .then(setEvents).catch((e) => setErr(String(e)));
     fetchJSON<{ transfers: Transfer[] }>("/api/public/arms-transfers?limit=1000")
       .then((d) => setTransfers(d.transfers)).catch(() => setTransfers([]));
+    fetchJSON<typeof hra>("/api/public/hra/position")
+      .then(setHra).catch(() => setHra(null));
   }, []);
 
   useEffect(() => {
@@ -288,6 +296,48 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {hra && (
+        <div className="hra">
+          <div className="hra-head">
+            <h3>Human Rights Agent — published position</h3>
+            <span className="hra-meta">{fmt(hra.created_at)} · {hra.engine} · independent algorithm; urgent items require human dispatch</span>
+          </div>
+          <p className="hra-statement">{hra.statement}</p>
+          <div className="hra-cols">
+            <div className="hra-vitals">
+              {Object.entries(hra.vitals).sort((a, b) => b[1].pressure - a[1].pressure).map(([c, d]) => (
+                <div className="hra-country" key={c}>
+                  <span className="hra-cname">{COUNTRY_NAMES.of(c) ?? c}</span>
+                  {Object.entries(d.vitals).filter(([, v]) => v.score > 0).map(([name, v]) => (
+                    <div className="hra-vital" key={name} title={`${name}: ${v.score}`}>
+                      <span className="hra-vlabel">{name.replace(/_/g, " ")}</span>
+                      <span className="hra-bar"><i className={`lv-${v.level}`} style={{ width: `${Math.round(v.score * 100)}%` }} /></span>
+                      <span className={`hra-lv lv-t-${v.level}`}>{v.level}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className="hra-actions">
+              <h4>Prioritized diplomatic actions</h4>
+              {hra.priorities.slice(0, 6).map((a, i) => (
+                <div className="hra-action" key={i}>
+                  <span className={`hra-lv lv-t-${a.level === "urgent" ? "alarm" : "concern"}`}>
+                    {a.level}{a.dispatch === "human_required" ? " · human dispatch" : ""}
+                  </span>
+                  <span className="hra-atext"><strong>{COUNTRY_NAMES.of(a.country) ?? a.country}</strong> — {a.action}</span>
+                </div>
+              ))}
+              {hra.platform_audit?.overall && (
+                <div className="hra-selfaudit">
+                  Self-audit of the platform: <strong>{hra.platform_audit.overall.replace(/_/g, " ")}</strong>
+                  {(hra.platform_audit.recommendations ?? []).slice(0, 2).map((r) => <span key={r}> · {r}</span>)}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

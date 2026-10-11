@@ -190,3 +190,20 @@ class ContributionOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- Human Rights Agent (pipelines/hra) ---
+
+class HRAPositionIn(BaseModel):
+    statement: str = Field(min_length=20, max_length=4000)
+    vitals: dict
+    priorities: list
+    platform_audit: dict | None = None
+    engine: str
+
+
+class HRAPositionOut(HRAPositionIn):
+    position_id: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
