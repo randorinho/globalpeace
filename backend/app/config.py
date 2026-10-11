@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     # this is defense in depth.
     gateway_shared_secret: str = "dev-only-change-me"
     environment: str = "development"
+    neo4j_url: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "gpai-dev-password"
 
     model_config = {"env_prefix": "GPAI_"}
 

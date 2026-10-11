@@ -62,6 +62,7 @@ services:
       GPAI_DATABASE_URL: postgresql+asyncpg://gpai:gpai@postgres:5432/gpai
       GPAI_ENVIRONMENT: ${GPAI_ENVIRONMENT:-development}
       GPAI_GATEWAY_SHARED_SECRET: ${GPAI_GATEWAY_SHARED_SECRET:-dev-only-change-me}
+      GPAI_NEO4J_URL: bolt://neo4j:7687
     depends_on:
       postgres:
         condition: service_healthy
