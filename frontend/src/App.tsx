@@ -6,6 +6,7 @@ import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, V
 const STATUSES: VerificationStatus[] = ["verified", "partially_verified", "disputed", "retracted"];
 
 const LENS_RE = /^\[([a-z_]+)\]\s*/;
+const COUNTRY_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
 const TYPES: EventType[] = ["protest", "attack", "negotiation", "displacement"];
 
 const fmt = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC";
@@ -465,8 +466,6 @@ function PublicTrails() {
                 <span className="step-detail">{trail.analyst_panel ? `${trail.analyst_panel.panelists} agents · ${trail.analyst_panel.concern_count} concern(s) · ${trail.analyst_panel.consensus_objections === 0 ? "no blocking objection shared by 2+ agents" : `${trail.analyst_panel.consensus_objections} blocking objection(s) shared by 2+ agents`}` : "—"}</span></div>
               <div className={`step ${selected.verification_status === "ai_corroborated" ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Machine corroboration</span>
                 <span className="step-detail">{selected.verification_status === "ai_corroborated" ? "promoted — labeled ai_corroborated" : "—"}</span></div>
-              <div className={`step ${trail.decisions.some((d) => d.actor === "human-operator") ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Human decision</span>
-                <span className="step-detail">{trail.decisions.filter((d) => d.actor === "human-operator").map((d) => d.to.replace(/_/g, " ")).join(", ") || "none yet"}</span></div>
             </div>
             {trail.rules_audit && Object.keys(trail.rules_audit.cross_checks ?? {}).length > 0 && (
               <div className="audit-panel">
@@ -474,6 +473,27 @@ function PublicTrails() {
                 <ul>{Object.entries(trail.rules_audit.cross_checks).map(([k, v]) => <li key={k}><strong>{k.replace(/_/g, " ")}</strong>: {v}</li>)}</ul>
               </div>
             )}
+            {(() => {
+              const related = events
+                .filter((e) => e.country === selected.country && e.event_id !== selected.event_id)
+                .sort((x, y) => y.date_time.localeCompare(x.date_time))
+                .slice(0, 5);
+              return related.length > 0 ? (
+                <div className="history">
+                  <h3>Latest reports — {COUNTRY_NAMES.of(selected.country) ?? selected.country}</h3>
+                  {related.map((e) => (
+                    <div className="hrow" key={e.event_id}>
+                      <div className="who">{fmt(e.date_time)} · <span className={`badge b-${e.verification_status}`}><span className="dot" />{e.verification_status.replace(/_/g, " ")}</span></div>
+                      <div className="what">
+                        <a className="related-link" href="#/review" onClick={(ev2) => { ev2.preventDefault(); setSelectedId(e.event_id); }}>
+                          {e.title || `${e.event_type} · ${e.country}`}
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null;
+            })()}
             <div className="history">
               <h3>Treatment timeline</h3>
               {trail.decisions.map((d, i) => (
