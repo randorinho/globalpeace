@@ -131,7 +131,7 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
           },
           {
             label: "Analyst panel",
-            detail: op ? `${op.panelists} agents · ${(op.concerns ?? []).length} concern(s) · ${op.consensus_count ?? 0} consensus` : "not yet run",
+            detail: op ? `${op.panelists} agents · ${(op.concerns ?? []).length} concern(s) · ${(op.consensus_count ?? 0) === 0 ? "none shared by 2+ agents" : `${op.consensus_count} shared by 2+ agents (blocking)`}` : "not yet run",
             state: op ? ((op.consensus_count ?? 0) > 0 ? "warn" : "done") : "off",
           },
           {
@@ -462,7 +462,7 @@ function PublicTrails() {
               <div className={`step ${trail.rules_audit ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Rules audit</span>
                 <span className="step-detail">{trail.rules_audit ? `score ${Number(trail.rules_audit.score).toFixed(2)} · ${Object.keys(trail.rules_audit.cross_checks ?? {}).length} cross-check(s)` : "—"}</span></div>
               <div className={`step ${trail.analyst_panel ? (trail.analyst_panel.consensus_objections > 0 ? "s-warn" : "s-done") : "s-off"}`}><span className="step-dot" /><span className="step-label">Analyst panel</span>
-                <span className="step-detail">{trail.analyst_panel ? `${trail.analyst_panel.panelists} agents · ${trail.analyst_panel.concern_count} concern(s) · ${trail.analyst_panel.consensus_objections} consensus` : "—"}</span></div>
+                <span className="step-detail">{trail.analyst_panel ? `${trail.analyst_panel.panelists} agents · ${trail.analyst_panel.concern_count} concern(s) · ${trail.analyst_panel.consensus_objections === 0 ? "no blocking objection shared by 2+ agents" : `${trail.analyst_panel.consensus_objections} blocking objection(s) shared by 2+ agents`}` : "—"}</span></div>
               <div className={`step ${selected.verification_status === "ai_corroborated" ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Machine corroboration</span>
                 <span className="step-detail">{selected.verification_status === "ai_corroborated" ? "promoted — labeled ai_corroborated" : "—"}</span></div>
               <div className={`step ${trail.decisions.some((d) => d.actor === "human-operator") ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Human decision</span>
