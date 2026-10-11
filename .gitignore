@@ -29,3 +29,4 @@ pipelines/.state/
 infra/.env
 infra/cloudflared/*.json
 pipelines/data/
+infra/.vps_ip

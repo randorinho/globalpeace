@@ -1,0 +1,23 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Edge health
+        run: curl -sf --max-time 20 https://globalpeace.ai/api/edge-healthz
+      - name: Origin through tunnel
+        run: curl -sf --max-time 25 https://origin.globalpeace.ai/healthz
+      - name: Public feed end-to-end
+        run: |
+          n=$(curl -sf --max-time 30 'https://globalpeace.ai/api/public/events?limit=1' | head -c 2000 | grep -c event_id)
+          [ "$n" -ge 1 ]
+      - name: Security boundary intact
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://origin.globalpeace.ai/events)
+          [ "$code" = "403" ] || { echo "SECURITY: origin returned $code without secret"; exit 1; }
