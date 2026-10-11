@@ -97,3 +97,17 @@ from vetted sources still enter as claims and still face cross-checks.
 Institutional tier remains hand-curated (IOM, UNHCR, ACLED, FEWS NET, WHO…).
 
 Run: `python -m vetting.run <url>`
+
+## Coverage parity (decision on HRA finding #1)
+
+Equal treatment of countries means an equal verification *burden* with
+adapted *instruments*. Two mechanisms:
+
+1. Every cross-check carries a parity fallback for countries the named
+   primary dataset does not cover: national statistical services,
+   regional-organisation monitoring (AU, ECOWAS, OAS, ASEAN), or two
+   independent vetted sources.
+2. Human-**ratified** vetted sources are promotion-eligible under a stricter
+   bar (>=2 independent corroborating publishers), so regions with thin
+   humanitarian-corpus coverage are not structurally locked out of machine
+   corroboration. Provisional vetted sources are never promotion-eligible.

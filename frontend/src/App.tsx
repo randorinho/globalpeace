@@ -369,6 +369,9 @@ function ReviewPage() {
   const countries = useMemo(() => [...new Set(queue.map((e) => e.country))].sort(), [queue]);
   const selected = queue.find((e) => e.event_id === selectedId) ?? null;
 
+  if (loadErr.includes("authenticated access")) {
+    return <PublicTrails />;
+  }
   return (
     <>
       <div className="topbar subbar">
@@ -393,19 +396,7 @@ function ReviewPage() {
               {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
-          {loadErr && loadErr.includes("authenticated access") ? (
-            <div className="restricted">
-              <strong>Operator console — restricted</strong>
-              <p>
-                Reviewing and verification run on secured operator access only
-                (see the review security policy). Public, human-labeled results
-                are on the <a href="#/">Map</a> — every event there shows how it
-                was verified.
-              </p>
-            </div>
-          ) : loadErr ? (
-            <div className="err">{loadErr}</div>
-          ) : null}
+          {loadErr && !loadErr.includes("authenticated access") && <div className="err">{loadErr}</div>}
           {queue.map((ev) => (
             <Card key={ev.event_id} ev={ev} selected={ev.event_id === selectedId} onClick={() => setSelectedId(ev.event_id)} />
           ))}
@@ -418,6 +409,87 @@ function ReviewPage() {
         </div>
       </div>
     </>
+  );
+}
+
+interface PublicTrail {
+  event_id: string;
+  status: string;
+  ingested: { information_type: string; source_language: string };
+  rules_audit: { verdict: string; score: number; signals: Record<string, unknown>; cross_checks: Record<string, string> } | null;
+  analyst_panel: { desk: string; panelists: number; concern_count: number; consensus_objections: number } | null;
+  decisions: { at: string; to: string; actor: string }[];
+}
+
+function PublicTrails() {
+  const [events, setEvents] = useState<GPEvent[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [trail, setTrail] = useState<PublicTrail | null>(null);
+
+  useEffect(() => {
+    fetch("/api/public/events?limit=500").then((r) => r.json()).then(setEvents).catch(() => setEvents([]));
+  }, []);
+  useEffect(() => {
+    if (!selectedId) return;
+    setTrail(null);
+    fetch(`/api/public/events/${selectedId}/trail`).then((r) => r.json()).then(setTrail).catch(() => setTrail(null));
+  }, [selectedId]);
+
+  const selected = events.find((e) => e.event_id === selectedId) ?? null;
+  return (
+    <div className="cols">
+      <div className="queue">
+        <div className="restricted">
+          <strong>Public verification trails</strong>
+          <p>
+            Every published event, with how it was treated: rules audit, analyst
+            panel, machine corroboration, human decisions. The operator console
+            carries more detail and runs on secured access only.
+          </p>
+        </div>
+        {events.map((ev) => (
+          <Card key={ev.event_id} ev={ev} selected={ev.event_id === selectedId} onClick={() => setSelectedId(ev.event_id)} />
+        ))}
+      </div>
+      <div className="detail">
+        {selected && trail ? (
+          <div>
+            <h2>{selected.title || `${selected.event_type} · ${selected.country}`} <Badge status={selected.verification_status} /></h2>
+            <p className="sub">{selected.country} · {fmt(selected.date_time)} · confidence {selected.confidence.toFixed(2)}</p>
+            <div className="journey">
+              <div className="step s-done"><span className="step-dot" /><span className="step-label">Ingested</span>
+                <span className="step-detail">{trail.ingested.information_type} · {trail.ingested.source_language}</span></div>
+              <div className={`step ${trail.rules_audit ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Rules audit</span>
+                <span className="step-detail">{trail.rules_audit ? `score ${Number(trail.rules_audit.score).toFixed(2)} · ${Object.keys(trail.rules_audit.cross_checks ?? {}).length} cross-check(s)` : "—"}</span></div>
+              <div className={`step ${trail.analyst_panel ? (trail.analyst_panel.consensus_objections > 0 ? "s-warn" : "s-done") : "s-off"}`}><span className="step-dot" /><span className="step-label">Analyst panel</span>
+                <span className="step-detail">{trail.analyst_panel ? `${trail.analyst_panel.panelists} agents · ${trail.analyst_panel.concern_count} concern(s) · ${trail.analyst_panel.consensus_objections} consensus` : "—"}</span></div>
+              <div className={`step ${selected.verification_status === "ai_corroborated" ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Machine corroboration</span>
+                <span className="step-detail">{selected.verification_status === "ai_corroborated" ? "promoted — labeled ai_corroborated" : "—"}</span></div>
+              <div className={`step ${trail.decisions.some((d) => d.actor === "human-operator") ? "s-done" : "s-off"}`}><span className="step-dot" /><span className="step-label">Human decision</span>
+                <span className="step-detail">{trail.decisions.filter((d) => d.actor === "human-operator").map((d) => d.to.replace(/_/g, " ")).join(", ") || "none yet"}</span></div>
+            </div>
+            {trail.rules_audit && Object.keys(trail.rules_audit.cross_checks ?? {}).length > 0 && (
+              <div className="audit-panel">
+                <h3>Independent verification owed</h3>
+                <ul>{Object.entries(trail.rules_audit.cross_checks).map(([k, v]) => <li key={k}><strong>{k.replace(/_/g, " ")}</strong>: {v}</li>)}</ul>
+              </div>
+            )}
+            <div className="history">
+              <h3>Treatment timeline</h3>
+              {trail.decisions.map((d, i) => (
+                <div className="hrow" key={i}>
+                  <div className="who">{d.at.slice(0, 19).replace("T", " ")} · {d.actor}</div>
+                  <div className="what">→ <strong>{d.to.replace(/_/g, " ")}</strong></div>
+                </div>
+              ))}
+              {trail.decisions.length === 0 && <span className="t-caption">No status transitions yet.</span>}
+            </div>
+          </div>
+        ) : (
+          <div className="empty">Select a published event to see its verification trail.</div>
+        )}
+      </div>
+    </div>
   );
 }
 

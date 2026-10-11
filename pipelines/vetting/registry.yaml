@@ -32,10 +32,12 @@ sources:
     status: ratified
   www.dabangasudan.org:
     tier: vetted
-    status: provisional
+    status: ratified
     vetted_at: '2026-10-11T11:37:01+00:00'
     by: vetting-panel(claude-opus-5 x3)
     notes: Crawled sample contains only CSS boilerplate, so masthead, bylines, corrections
       policy and contact details could not be confirmed directly from the captured
       content; Reliance on in-country stringers and anonymous local 'listeners/sources'
       in a war zone means many reports are effectively single-sourc
+    ratified_by: operator:randorinho@mbuintelligence.com
+    ratified_at: '2026-10-11T21:19:59+00:00'

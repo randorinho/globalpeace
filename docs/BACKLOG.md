@@ -72,6 +72,10 @@ drafted by machine, dispatched by an accountable human, auditable end to end.
 - [ ] **Mediator/contact registry** — vetted organisations per region, with
       consent and channel preferences
 
+- [ ] **HRA follow-ups** — decide whether provisional-vetted sources may count
+      as corroborating publishers (they cannot promote); reject header-asserted
+      reviewer identity in code at Access activation (policy-bound); review the
+      HRA's standing exposure/bias observations each cycle
 ## P3 — Scale & community
 
 - [ ] **Contribution moderation queue UI** — triage view across all public

@@ -49,6 +49,7 @@ See the full documentation:
 | [docs/BACKLOG.md](docs/BACKLOG.md) | Internal backlog — P0 operational trust → P2 Solutions Engine → DevEx |
 | [docs/REVIEW_SECURITY_POLICY.md](docs/REVIEW_SECURITY_POLICY.md) | DRAFT — controls required before human-review expansion; interim AI-corroboration regime |
 | [docs/HUMAN_RIGHTS_AGENT.md](docs/HUMAN_RIGHTS_AGENT.md) | Independent HRA: vitals immune system, development auditor, published position |
+| [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | AI-Act-oriented controls: logging, closed-context agents, human oversight, transparency |
 
 ## Repository layout
 

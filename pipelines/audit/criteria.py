@@ -68,7 +68,9 @@ def source_tier(urls: list[str]) -> tuple[str, float]:
                 if tier == "rejected":
                     return "rejected_source", 0.05
                 if tier == "vetted":
-                    best = max(best, ("vetted", 0.65), key=lambda t: t[1])
+                    ratified = entry.get("status") == "ratified"
+                    cand = ("vetted_ratified", 0.7) if ratified else ("vetted_provisional", 0.6)
+                    best = max(best, cand, key=lambda t: t[1])
                 elif tier == "watch":
                     best = max(best, ("watch", 0.3), key=lambda t: t[1])
         if any(host == d or host.endswith("." + d) for d in KNOWN_NGO):
@@ -86,11 +88,18 @@ def recency(date_time: str, now: datetime) -> tuple[str, float, float]:
     return "stale", 0.2, days
 
 
+# Coverage parity (HRA bias finding): the named primary dataset may not cover
+# every country — the verification burden stays equal, the instrument adapts.
+PARITY_FALLBACK = (" — where this dataset does not cover the country, corroborate via the "
+                   "national statistical service, regional-organisation monitoring "
+                   "(AU, ECOWAS, OAS, ASEAN), or two independent vetted sources")
+
+
 def required_cross_checks(text: str) -> dict[str, str]:
     checks: dict[str, str] = {}
     for pattern, key, instruction in CROSS_CHECKS:
         if re.search(pattern, text, re.I):
-            checks[key] = instruction
+            checks[key] = instruction + PARITY_FALLBACK
     return checks
 
 

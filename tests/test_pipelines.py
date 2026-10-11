@@ -38,9 +38,20 @@ def test_source_tiers():
     assert source_tier(["https://reliefweb.int/report/x"])[0] == "institutional"
     assert source_tier(["https://iom.int/news/x"])[0] == "institutional"
     assert source_tier([])[0] == "none"
-    # vetted via registry (Radio Dabanga, provisionally vetted by the panel)
-    tier, score = source_tier(["https://www.dabangasudan.org/en/all-news/x"])
-    assert tier == "vetted" and score == 0.65
+    # vetted via registry — test against a controlled registry, not live data
+    import audit.criteria as crit
+    saved = crit._REGISTRY
+    crit._REGISTRY = {
+        "provisional.example": {"tier": "vetted", "status": "provisional"},
+        "ratified.example": {"tier": "vetted", "status": "ratified"},
+        "bad.example": {"tier": "rejected", "status": "ratified"},
+    }
+    try:
+        assert source_tier(["https://provisional.example/a"]) == ("vetted_provisional", 0.6)
+        assert source_tier(["https://ratified.example/a"]) == ("vetted_ratified", 0.7)
+        assert source_tier(["https://bad.example/a"]) == ("rejected_source", 0.05)
+    finally:
+        crit._REGISTRY = saved
 
 
 def test_cross_check_matrix_names_primary_datasets():
@@ -60,3 +71,29 @@ def test_corroboration_is_publisher_aware_not_domain_based():
     # same clearing-house domain, different publishers -> independent
     assert corroboration(ev1, [ev1, ev2, ev3]) == 1  # WFP only (ev3 is same publisher)
     assert publisher_of(ev2) == "WFP"
+
+
+def test_cross_checks_carry_coverage_parity_fallback():
+    checks = required_cross_checks("refugees flee across the border")
+    assert "regional-organisation monitoring" in checks["refugee_figures"]
+
+
+def test_promotion_gate_invariants():
+    from audit.promotion import promotable
+    base_sig = {"source_tier": "institutional", "recency": "fresh", "corroborating_events": 2}
+    panel = {"panelists": 6, "consensus_count": 0}
+    clean = {"verification_status": "unverified", "actors": [], "location": None}
+    assert promotable(base_sig, panel, clean)
+    # fail-closed: no panel -> no promotion
+    assert not promotable(base_sig, None, clean)
+    assert not promotable(base_sig, {"panelists": 0}, clean)
+    # exposure gate: actors or exact location -> human required
+    assert not promotable(base_sig, panel, {**clean, "actors": ["Commander X"]})
+    assert not promotable(base_sig, panel, {**clean, "location": {"lat": 1, "lon": 2}})
+    # human decisions untouchable
+    assert not promotable(base_sig, panel, {**clean, "verification_status": "retracted"})
+    # coverage parity: ratified vetted source eligible only with >=2 publishers
+    vetted = {**base_sig, "source_tier": "vetted_ratified"}
+    assert promotable(vetted, panel, clean)
+    assert not promotable({**vetted, "corroborating_events": 1}, panel, clean)
+    assert not promotable({**base_sig, "source_tier": "vetted_provisional"}, panel, clean)

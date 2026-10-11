@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..db import get_session
-from ..models import Contribution, Event
+from ..models import Contribution, Event, ReviewDecision
 from ..schemas import ContributionIn, ContributionOut, EventOut, VerificationStatus
 from .events import _to_out
 
@@ -126,3 +126,49 @@ async def submit_contribution(
     await session.commit()
     await session.refresh(record)
     return record
+
+
+def _actor_class(reviewer: str) -> str:
+    """Public trails expose actor classes, never identities (data minimisation)."""
+    return "ai-pipeline" if reviewer.startswith("ai-pipeline") else "human-operator"
+
+
+@router.get("/events/{event_id}/trail")
+async def public_trail(event_id: str, session: AsyncSession = Depends(get_session)):
+    """Sanitized verification trail for a publicly-published event: the full
+    journey (ingestion -> rules audit -> analyst panel -> corroboration ->
+    decisions), with less detail than the operator console — no notes, no
+    reviewer identities, no evidence URLs submitted by reviewers."""
+    ev = await session.get(Event, event_id)
+    if ev is None or ev.verification_status not in PUBLIC_STATUSES:
+        raise HTTPException(404, "no public trail for this event")
+
+    audit = ev.ai_audit or {}
+    op = audit.get("llm_opinion") or {}
+    decisions = (
+        (await session.execute(
+            select(ReviewDecision).where(ReviewDecision.event_id == event_id)
+            .order_by(ReviewDecision.created_at.asc())
+        )).scalars().all()
+    )
+    return {
+        "event_id": ev.event_id,
+        "status": ev.verification_status,
+        "ingested": {"information_type": ev.information_type, "source_language": ev.source_language},
+        "rules_audit": {
+            "verdict": audit.get("verdict"),
+            "score": audit.get("score"),
+            "signals": audit.get("signals"),
+            "cross_checks": audit.get("cross_checks"),
+        } if audit else None,
+        "analyst_panel": {
+            "desk": op.get("desk"),
+            "panelists": op.get("panelists"),
+            "concern_count": len(op.get("concerns") or []),
+            "consensus_objections": op.get("consensus_count", 0),
+        } if op else None,
+        "decisions": [
+            {"at": d.created_at, "to": d.new_status, "actor": _actor_class(d.reviewer)}
+            for d in decisions
+        ],
+    }
