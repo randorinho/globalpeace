@@ -5,15 +5,13 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from .config import settings
-from .db import Base, engine
+from .db import engine
 from .routers import events, evidence, health, hra, public, review, solutions
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Scaffold-stage schema creation; replace with Alembic migrations before production.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Schema is owned by Alembic (migrations run in the container entrypoint).
     yield
     await engine.dispose()
 
