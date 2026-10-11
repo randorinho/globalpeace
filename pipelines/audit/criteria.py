@@ -43,7 +43,7 @@ CROSS_CHECKS: list[tuple[str, str, str]] = [
     (r"attack|attaque|clash|violen|killed|tu[ée]s|incident|conflict event|affected [\d,]+ people",
      "conflict_figures", "cross-check against ACLED's underlying dataset; interpret 'affected N people' per ACLED methodology"),
     (r"price|prix|march[ée]|market|food insecur|ins[ée]curit[ée] alimentaire|famine|harvest|r[ée]colte|lean season|soudure",
-     "market_figures", "compare with FEWS NET market data and local market-monitoring sources"),
+     "market_figures", "compare with INDEPENDENT market data: WFP VAM, national market information systems (e.g. SISAAP in Chad); FEWS NET's own data cannot verify a FEWS NET price claim (circularity flagged by the audit desk)"),
     (r"boat|capsiz|drown|shipwreck|naufrag|migrant deaths?|missing migrants",
      "migrant_casualty_figures", "cross-check with IOM Missing Migrants Project data; casualty counts in early reporting are routinely revised"),
     (r"cholera|measles|epidemic|health needs|malnutrition",
