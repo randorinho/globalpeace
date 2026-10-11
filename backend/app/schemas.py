@@ -207,3 +207,20 @@ class HRAPositionOut(HRAPositionIn):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- solutions engine (pipelines/solutions) ---
+
+class SolutionSetIn(BaseModel):
+    country: str = Field(min_length=2, max_length=2)
+    window_days: int
+    situation: dict
+    approaches: list
+    engine: str
+
+
+class SolutionSetOut(SolutionSetIn):
+    solution_id: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

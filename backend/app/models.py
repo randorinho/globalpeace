@@ -114,3 +114,21 @@ class HRAPosition(Base):
     platform_audit: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     engine: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class SolutionSet(Base):
+    """Machine-drafted peace approaches per situation (append-only).
+    information_type: recommendation — advisory options for human
+    decision-makers; nothing is dispatched automatically."""
+
+    __tablename__ = "solution_sets"
+
+    solution_id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    country: Mapped[str] = mapped_column(String(2), index=True)
+    window_days: Mapped[int] = mapped_column(Float)
+    situation: Mapped[dict] = mapped_column(JSON, default=dict)
+    approaches: Mapped[list] = mapped_column(JSON, default=list)
+    engine: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

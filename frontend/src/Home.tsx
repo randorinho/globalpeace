@@ -110,6 +110,12 @@ export default function Home() {
   const mapDiv = useRef<HTMLDivElement>(null);
   const [events, setEvents] = useState<GPEvent[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [solutions, setSolutions] = useState<{
+    country: string; created_at: string; engine: string;
+    approaches: { level: string; title: string; approach: string; rationale: string;
+                  enabling_actors: string[]; risks: string; what_would_make_this_wrong: string;
+                  confidence: string }[];
+  }[]>([]);
   const [hra, setHra] = useState<{
     statement: string; created_at: string; engine: string;
     vitals: Record<string, { pressure: number; vitals: Record<string, { score: number; level: string }> }>;
@@ -130,6 +136,8 @@ export default function Home() {
       .then((d) => setTransfers(d.transfers)).catch(() => setTransfers([]));
     fetchJSON<typeof hra>("/api/public/hra/position")
       .then(setHra).catch(() => setHra(null));
+    fetchJSON<typeof solutions>("/api/public/solutions")
+      .then(setSolutions).catch(() => setSolutions([]));
   }, []);
 
   useEffect(() => {
@@ -336,6 +344,35 @@ export default function Home() {
               )}
             </div>
           </div>
+        </div>
+      )}
+      {solutions.length > 0 && (
+        <div className="hra solutions">
+          <div className="hra-head">
+            <h3>Suggested approaches for peace</h3>
+            <span className="hra-meta">machine-drafted recommendations grounded in treated events — options for decision-makers, never commands; dispatch is human</span>
+          </div>
+          {solutions.map((s) => (
+            <div className="sol-country" key={s.country}>
+              <span className="hra-cname">{COUNTRY_NAMES.of(s.country) ?? s.country}</span>
+              <div className="sol-grid">
+                {s.approaches.map((a, i) => (
+                  <details className="sol-card" key={i}>
+                    <summary>
+                      <span className={`sol-level l-${a.level}`}>{a.level}</span>
+                      <span className="sol-title">{a.title}</span>
+                      <span className="sol-conf">{a.confidence}</span>
+                    </summary>
+                    <p>{a.approach}</p>
+                    <p className="sol-why"><strong>Why now:</strong> {a.rationale}</p>
+                    <p className="sol-why"><strong>Enabling actors:</strong> {a.enabling_actors.join(", ")}</p>
+                    <p className="sol-risk"><strong>Risks:</strong> {a.risks}</p>
+                    <p className="sol-risk"><strong>What would make this wrong:</strong> {a.what_would_make_this_wrong}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
