@@ -257,3 +257,10 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
   border: 1px dashed var(--gp-border); border-radius: 6px; padding: 9px 14px;
 }
 .operator[open] > summary { margin-bottom: 14px; border-style: solid; }
+
+.restricted {
+  border: 1px dashed var(--gp-border); border-radius: 8px; padding: 14px 16px;
+  background: var(--gp-surface); font-size: 13.5px; display: flex; flex-direction: column; gap: 6px;
+}
+.restricted p { margin: 0; color: var(--gp-ink-muted); }
+.restricted a { color: var(--gp-primary); }
