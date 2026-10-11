@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from common import API_URL, api_headers  # noqa: E402
 
 from .criteria import corroboration, recency, source_tier  # noqa: E402
+from .promotion import promotable  # noqa: E402
 from datetime import datetime, timezone  # noqa: E402
 
 
@@ -23,12 +24,8 @@ def main() -> None:
         tier, _ = source_tier(ev.get("source_urls", []))
         rec, _, _ = recency(ev["date_time"], now)
         corrob = corroboration(ev, evs)
-        op = ev["ai_audit"].get("llm_opinion") or {}
-        panel_ran = bool(op.get("panelists"))
-        consensus = op.get("consensus_count", 0)
-        exposed = bool(ev.get("actors")) or ev.get("location") is not None
-        if (tier == "institutional" and rec != "stale" and corrob >= 1
-                and panel_ran and consensus == 0 and not exposed):
+        sig = {"source_tier": tier, "recency": rec, "corroborating_events": corrob}
+        if promotable(sig, ev["ai_audit"].get("llm_opinion"), ev):
             r = httpx.post(f"{API_URL}/events/{ev['event_id']}/ai-corroborate",
                            headers=api_headers(), timeout=30)
             if r.status_code == 200:

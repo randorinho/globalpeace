@@ -61,6 +61,14 @@ that power auditable, distributed, and revocable.
   attributed to `ai-pipeline(continental-desks)`, with the platform operator
   as the accountable human for the pipeline's conduct.
 
+## Sunset of the interim regime (decision on HRA finding #2)
+
+The machine-corroboration regime is **transitional by design**: it ends
+automatically when this policy's activation checklist completes. From that
+point, `ai_corroborated` becomes a queueing label only — publication tiers
+revert to human decisions. The Human Rights Agent continues to publish the
+compliance tension until then; that persistent public record is intentional.
+
 ## Activation checklist
 
 - [ ] Controls 1–9 deployed and tested

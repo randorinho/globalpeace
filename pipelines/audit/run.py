@@ -15,6 +15,7 @@ import httpx
 from .continents import group_by_desk
 from .criteria import audit_event
 from .desks import run_panel
+from .promotion import promotable
 
 import sys as _sys
 from pathlib import Path as _Path
@@ -69,27 +70,6 @@ def main() -> None:
                     if audit["verdict"] == "credible_recent":
                         audit["verdict"] = "needs_additional_verification"  # doubt only downgrades
 
-    def promotable(ev: dict, audit: dict) -> bool:
-        """ai_corroborated criteria: institutional source, independently
-        corroborated, fresh/recent, and — when a desk panel ran — zero
-        consensus-level objections. Pending cross-checks remain visible as
-        caveats; promotion never implies human verification."""
-        sig = audit["signals"]
-        if sig["source_tier"] != "institutional" or sig["recency"] == "stale":
-            return False
-        if sig["corroborating_events"] < 1:
-            return False
-        # Fail-closed (HRA self-audit finding): if the analyst panel did not
-        # actually run, machine corroboration is withheld, not granted.
-        op = audit.get("llm_opinion")
-        if not op or not op.get("panelists") or op.get("consensus_count", 0) > 0:
-            return False
-        # Exposure gate (HRA self-audit finding): named actors or exact
-        # coordinates raise targeting risk — publication of those needs a human.
-        if ev.get("actors") or ev.get("location") is not None:
-            return False
-        return ev.get("verification_status") == "unverified"
-
     counts: dict[str, int] = {}
     promoted = 0
     for ev in targets:
@@ -101,7 +81,7 @@ def main() -> None:
             continue
         r = httpx.post(f"{API_URL}/events/{ev['event_id']}/audit", json=audit, timeout=30, headers=api_headers())
         r.raise_for_status()
-        if promotable(ev, audit):
+        if promotable(audit["signals"], audit.get("llm_opinion"), ev):
             pr = httpx.post(f"{API_URL}/events/{ev['event_id']}/ai-corroborate", timeout=30, headers=api_headers())
             if pr.status_code == 200:
                 promoted += 1

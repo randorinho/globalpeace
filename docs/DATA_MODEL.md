@@ -63,3 +63,13 @@ Each relationship carries:
 ### Design constraint
 
 Avoid creating a ranking of "bad countries." The graph displays **relationships, evidence, and uncertainty** — it must never turn entire populations into villains.
+
+### Actor-graph publication rules (decision on HRA finding #3)
+
+Publicly served graph data is limited to **documented state-to-state
+relationships from citable datasets** (e.g. SIPRI arms transfers), always with
+attribution. The public graph must not include: named individuals; sub-national
+or non-state armed-actor links; or inferred (non-documented) relationships.
+Expanding any of these requires council-level review (docs/GOVERNANCE.md
+institutional model) — targeting and defamation risk is real even when the
+underlying data is accurate.
