@@ -16,7 +16,7 @@ const fmt = (iso: string) => iso.slice(0, 10);
 const STATUS_COLOR: Record<string, string> = {
   verified: "#2B8C72",
   partially_verified: "#63CDA3",
-  ai_corroborated: "#41484C", // machine-corroborated — labeled, visually distinct from human-reviewed greens
+  ai_corroborated: "#37675D", // machine sea-green: trust family, muted — never impersonates human green
 };
 
 interface Transfer {
@@ -237,11 +237,11 @@ export default function Home() {
       <div className="hero">
         <h2>Where reviewed events are happening</h2>
         <p>
-          Circles are reviewed events — green shades passed human review;
-          slate circles are AI-corroborated (institutional source, independent
-          corroboration, no analyst-panel objections) and labeled as such until
-          a human reviews them. Size reflects confidence and reported civilian
-          impact. Dashed lines are documented
+          Circles are treated events on one trust ladder: deep green passed
+          human review, mint is partially verified, and sea-green is
+          AI-corroborated (institutional source, independent corroboration, no
+          analyst-panel objections). Size reflects confidence and reported
+          civilian impact. Dashed lines are documented
           arms transfers from the SIPRI Arms Transfers Database — relationships
           with sources, not accusations. Nothing here is a forecast, and
           nothing here is a ranking.
@@ -254,7 +254,7 @@ export default function Home() {
           <div className="legend">
             <span><i className="sw" style={{ background: "#2B8C72" }} /> verified</span>
             <span><i className="sw" style={{ background: "#63CDA3" }} /> partially verified</span>
-            <span><i className="sw" style={{ background: "#41484C" }} /> AI-corroborated (not human-verified)</span>
+            <span><i className="sw" style={{ background: "#37675D" }} /> AI-corroborated (machine trust tier)</span>
             <span><i className="sw line" /> documented arms transfers (SIPRI)</span>
             <span className="legend-note">circle size = confidence + civilian impact · thick outline = exact location</span>
           </div>
