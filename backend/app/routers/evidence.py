@@ -33,10 +33,14 @@ CROSS_CHECK_DOMAINS = {
     "fdw.fews.net": "market_figures",
     "who.int": "health_figures",
     "extranet.who.int": "health_figures",
+    "missingmigrants.iom.int": "migrant_casualty_figures",
+    "iom.int": "migrant_casualty_figures",
+    "dtm.iom.int": "migrant_casualty_figures",
 }
 INSTITUTIONAL = (
     "reliefweb.int", "un.org", "unhcr.org", "wfp.org", "who.int", "unocha.org",
     "fews.net", "acleddata.com", "icrc.org", "data.humdata.org",
+    "iom.int",
 )
 
 

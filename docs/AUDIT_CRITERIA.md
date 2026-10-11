@@ -72,3 +72,18 @@ LLM layer is unavailable.
 
 Run: `python -m audit.run --with-desks` (panel size configurable via
 `--panel-size`; requires Anthropic API credentials on the pipeline host).
+
+## Source vetting subsystem (pipelines/vetting/)
+
+New internet sources are vetted by a three-lens agentic panel — provenance,
+content integrity, manipulation signals — against a fetched sample of the
+source's output. Promotion doctrine: a source is auto-promoted to `vetted`
+(tier 0.65 in the audit rules) **only on a unanimous panel with low
+manipulation risk**, and always as `provisional` pending human ratification
+in `vetting/registry.yaml`. Disagreement → `watch`; any rejection or high
+manipulation risk → `rejected` (tier 0.05, flagged wherever cited).
+Vetting trusts a *source*; it never verifies an individual claim — events
+from vetted sources still enter as claims and still face cross-checks.
+Institutional tier remains hand-curated (IOM, UNHCR, ACLED, FEWS NET, WHO…).
+
+Run: `python -m vetting.run <url>`

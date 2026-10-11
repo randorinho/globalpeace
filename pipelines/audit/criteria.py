@@ -9,7 +9,20 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlparse
+
+import yaml
+
+_REGISTRY = None
+
+
+def _registry() -> dict:
+    global _REGISTRY
+    if _REGISTRY is None:
+        p = Path(__file__).parent.parent / "vetting" / "registry.yaml"
+        _REGISTRY = yaml.safe_load(p.read_text())["sources"] if p.exists() else {}
+    return _REGISTRY
 
 FRESH_DAYS = 3
 RECENT_DAYS = 14
@@ -18,6 +31,7 @@ RECENT_DAYS = 14
 INSTITUTIONAL = (
     "reliefweb.int", "un.org", "unhcr.org", "wfp.org", "who.int", "unocha.org",
     "fews.net", "acleddata.com", "icrc.org", "data.humdata.org",
+    "iom.int", "missingmigrants.iom.int", "dtm.iom.int",
 )
 KNOWN_NGO = ("msf.org", "savethechildren.net", "nrc.no", "rescue.org", "crisisgroup.org")
 
@@ -30,6 +44,8 @@ CROSS_CHECKS: list[tuple[str, str, str]] = [
      "conflict_figures", "cross-check against ACLED's underlying dataset; interpret 'affected N people' per ACLED methodology"),
     (r"price|prix|march[ée]|market|food insecur|ins[ée]curit[ée] alimentaire|famine|harvest|r[ée]colte|lean season|soudure",
      "market_figures", "compare with FEWS NET market data and local market-monitoring sources"),
+    (r"boat|capsiz|drown|shipwreck|naufrag|migrant deaths?|missing migrants",
+     "migrant_casualty_figures", "cross-check with IOM Missing Migrants Project data; casualty counts in early reporting are routinely revised"),
     (r"cholera|measles|epidemic|health needs|malnutrition",
      "health_figures", "cross-check with WHO/UNICEF surveillance data"),
 ]
@@ -39,12 +55,24 @@ def source_tier(urls: list[str]) -> tuple[str, float]:
     if not urls:
         return "none", 0.1
     best = ("unknown", 0.4)
+    reg = _registry()
     for u in urls:
         host = urlparse(u).hostname or ""
         if any(host == d or host.endswith("." + d) for d in INSTITUTIONAL):
             return "institutional", 0.8
+        for domain, entry in reg.items():
+            if host == domain or host.endswith("." + domain):
+                tier = entry.get("tier")
+                if tier == "institutional":
+                    return "institutional", 0.8
+                if tier == "rejected":
+                    return "rejected_source", 0.05
+                if tier == "vetted":
+                    best = max(best, ("vetted", 0.65), key=lambda t: t[1])
+                elif tier == "watch":
+                    best = max(best, ("watch", 0.3), key=lambda t: t[1])
         if any(host == d or host.endswith("." + d) for d in KNOWN_NGO):
-            best = ("known_ngo", 0.6)
+            best = max(best, ("known_ngo", 0.6), key=lambda t: t[1])
     return best
 
 

@@ -85,7 +85,7 @@ def run_panel(desk: str, events: list[dict], panel_size: int = 6) -> dict | None
         try:
             response = client.messages.create(
                 model="claude-opus-5",
-                max_tokens=4096,
+                max_tokens=16000,
                 system=SYSTEM_BASE + lens_text,
                 output_config={"format": {"type": "json_schema", "schema": PANEL_SCHEMA}},
                 messages=[{
@@ -95,6 +95,9 @@ def run_panel(desk: str, events: list[dict], panel_size: int = 6) -> dict | None
                 }],
             )
             if response.stop_reason == "refusal":
+                continue
+            if response.stop_reason == "max_tokens":
+                print(f"  desk {desk}/{lens_name}: truncated digest output — skipped", file=sys.stderr)
                 continue
             data = json.loads(next(b.text for b in response.content if b.type == "text"))
             ran += 1
