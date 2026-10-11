@@ -117,6 +117,47 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
       </h2>
       <p className="sub">Reported {fmt(ev.date_time)} · {ev.information_type} · {ev.source_language}</p>
 
+      {(() => {
+        const audit = ev.ai_audit;
+        const op = (audit?.llm_opinion ?? null) as { panelists?: number; consensus_count?: number; concerns?: string[] } | null;
+        const human = history.find((h) => !h.reviewer.startsWith("ai-pipeline"));
+        const machine = ev.verification_status === "ai_corroborated";
+        const steps: { label: string; detail: string; state: "done" | "warn" | "off" }[] = [
+          { label: "Ingested", detail: `${ev.information_type} · ${ev.source_language}`, state: "done" },
+          {
+            label: "Rules audit",
+            detail: audit ? `score ${audit.score.toFixed(2)} · ${Object.keys(audit.cross_checks).length} cross-check(s) named` : "pending",
+            state: audit ? "done" : "off",
+          },
+          {
+            label: "Analyst panel",
+            detail: op ? `${op.panelists} agents · ${(op.concerns ?? []).length} concern(s) · ${op.consensus_count ?? 0} consensus` : "not yet run",
+            state: op ? ((op.consensus_count ?? 0) > 0 ? "warn" : "done") : "off",
+          },
+          {
+            label: "Machine corroboration",
+            detail: machine ? "promoted — labeled ai_corroborated publicly" : audit?.verdict === "needs_additional_verification" ? "withheld — doubts outstanding" : "—",
+            state: machine ? "done" : audit ? "warn" : "off",
+          },
+          {
+            label: "Human decision",
+            detail: human ? `${human.new_status.replace(/_/g, " ")} — ${human.reviewer}` : "none (optional at this stage)",
+            state: human ? "done" : "off",
+          },
+        ];
+        return (
+          <div className="journey">
+            {steps.map((s) => (
+              <div className={`step s-${s.state}`} key={s.label}>
+                <span className="step-dot" />
+                <span className="step-label">{s.label}</span>
+                <span className="step-detail">{s.detail}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       <dl className="kv">
         <dt>Event ID</dt><dd>{ev.event_id}</dd>
         <dt>Location</dt><dd>{ev.location ? `${ev.location.lat.toFixed(4)}, ${ev.location.lon.toFixed(4)}` : "—"}</dd>
@@ -185,6 +226,8 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
         );
       })()}
 
+      <details className="operator">
+        <summary>Operator actions — restricted (see docs/REVIEW_SECURITY_POLICY.md)</summary>
       <div className="evidence">
         <h3>
           External evidence
@@ -282,6 +325,8 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
           {msg && <span className={msg.ok ? "ok" : "err"}>{msg.text}</span>}
         </div>
       </div>
+
+      </details>
 
       {history.length > 0 && (
         <div className="history">

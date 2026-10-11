@@ -234,3 +234,26 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .agent summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gp-ink); padding: 3px 0; }
 .agent ul { margin: 4px 0 8px; padding-left: 18px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
 .agents-clear { font-size: 13px; color: var(--gp-status-verified); }
+
+/* verification journey stepper */
+.journey {
+  display: flex; flex-wrap: wrap; gap: 0 14px; margin-bottom: 22px; max-width: 760px;
+  border: 1px solid var(--gp-border); border-radius: 8px; background: var(--gp-surface); padding: 14px 18px;
+}
+.step { display: flex; flex-direction: column; gap: 2px; padding: 4px 10px 4px 0; min-width: 130px; flex: 1; }
+.step-dot { width: 10px; height: 10px; border-radius: 50%; margin-bottom: 4px; }
+.s-done .step-dot { background: var(--gp-status-verified); }
+.s-warn .step-dot { background: var(--gp-alert); }
+.s-off .step-dot { background: var(--gp-border); }
+.step-label { font: 500 12px var(--gp-font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.s-off .step-label { color: var(--gp-ink-muted); }
+.step-detail { font-size: 12px; color: var(--gp-ink-muted); line-height: 1.35; }
+
+/* restricted operator drawer */
+.operator { max-width: 640px; margin-bottom: 18px; }
+.operator > summary {
+  cursor: pointer; font: 500 12.5px var(--gp-font-mono); text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--gp-ink-muted);
+  border: 1px dashed var(--gp-border); border-radius: 6px; padding: 9px 14px;
+}
+.operator[open] > summary { margin-bottom: 14px; border-style: solid; }
