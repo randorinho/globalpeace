@@ -393,7 +393,19 @@ function ReviewPage() {
               {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
-          {loadErr && <div className="err">{loadErr}</div>}
+          {loadErr && loadErr.includes("authenticated access") ? (
+            <div className="restricted">
+              <strong>Operator console — restricted</strong>
+              <p>
+                Reviewing and verification run on secured operator access only
+                (see the review security policy). Public, human-labeled results
+                are on the <a href="#/">Map</a> — every event there shows how it
+                was verified.
+              </p>
+            </div>
+          ) : loadErr ? (
+            <div className="err">{loadErr}</div>
+          ) : null}
           {queue.map((ev) => (
             <Card key={ev.event_id} ev={ev} selected={ev.event_id === selectedId} onClick={() => setSelectedId(ev.event_id)} />
           ))}
