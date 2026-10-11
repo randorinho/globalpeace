@@ -38,9 +38,20 @@ def test_source_tiers():
     assert source_tier(["https://reliefweb.int/report/x"])[0] == "institutional"
     assert source_tier(["https://iom.int/news/x"])[0] == "institutional"
     assert source_tier([])[0] == "none"
-    # vetted via registry (Radio Dabanga — provisional until a human ratifies)
-    tier, score = source_tier(["https://www.dabangasudan.org/en/all-news/x"])
-    assert tier == "vetted_provisional" and score == 0.6
+    # vetted via registry — test against a controlled registry, not live data
+    import audit.criteria as crit
+    saved = crit._REGISTRY
+    crit._REGISTRY = {
+        "provisional.example": {"tier": "vetted", "status": "provisional"},
+        "ratified.example": {"tier": "vetted", "status": "ratified"},
+        "bad.example": {"tier": "rejected", "status": "ratified"},
+    }
+    try:
+        assert source_tier(["https://provisional.example/a"]) == ("vetted_provisional", 0.6)
+        assert source_tier(["https://ratified.example/a"]) == ("vetted_ratified", 0.7)
+        assert source_tier(["https://bad.example/a"]) == ("rejected_source", 0.05)
+    finally:
+        crit._REGISTRY = saved
 
 
 def test_cross_check_matrix_names_primary_datasets():
