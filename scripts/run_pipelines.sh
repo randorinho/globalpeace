@@ -15,6 +15,9 @@ if ! mkdir "$LOCK" 2>/dev/null; then
 fi
 trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 
+# load platform secrets (gateway secret, ANTHROPIC_API_KEY for the audit desks)
+if [[ -f "$REPO/infra/.env" ]]; then set -a; source "$REPO/infra/.env"; set +a; fi
+
 PY="$REPO/.venv/bin/python"
 [[ -x "$PY" ]] || { echo "$(date -u +%FT%TZ) ERROR: .venv missing — run scripts/setup_venv.sh" >> "$LOG"; exit 1; }
 
