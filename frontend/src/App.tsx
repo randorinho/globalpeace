@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Home from "./Home";
-import { fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
+import { fetchContributions, fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
 import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, VerificationStatus } from "./types";
 
 const STATUSES: VerificationStatus[] = ["verified", "partially_verified", "disputed", "retracted"];
+
+const LENS_RE = /^\[([a-z_]+)\]\s*/;
 const TYPES: EventType[] = ["protest", "attack", "negotiation", "displacement"];
 
 const fmt = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC";
@@ -48,6 +50,8 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
   const [evNote, setEvNote] = useState("");
   const [evMsg, setEvMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const [contributions, setContributions] = useState<Awaited<ReturnType<typeof fetchContributions>>>([]);
+
   const loadEvidence = () =>
     fetchEvidence(ev.event_id).then(setEvidence).catch(() => setEvidence(null));
   const [status, setStatus] = useState<VerificationStatus | null>(null);
@@ -64,6 +68,7 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
     fetchHistory(ev.event_id).then(setHistory).catch(() => setHistory([]));
     setEvUrl(""); setEvNote(""); setEvMsg(null);
     loadEvidence();
+    if (reviewer) fetchContributions(ev.event_id, reviewer).then(setContributions).catch(() => setContributions([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ev.event_id]);
 
@@ -112,6 +117,47 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
       </h2>
       <p className="sub">Reported {fmt(ev.date_time)} · {ev.information_type} · {ev.source_language}</p>
 
+      {(() => {
+        const audit = ev.ai_audit;
+        const op = (audit?.llm_opinion ?? null) as { panelists?: number; consensus_count?: number; concerns?: string[] } | null;
+        const human = history.find((h) => !h.reviewer.startsWith("ai-pipeline"));
+        const machine = ev.verification_status === "ai_corroborated";
+        const steps: { label: string; detail: string; state: "done" | "warn" | "off" }[] = [
+          { label: "Ingested", detail: `${ev.information_type} · ${ev.source_language}`, state: "done" },
+          {
+            label: "Rules audit",
+            detail: audit ? `score ${audit.score.toFixed(2)} · ${Object.keys(audit.cross_checks).length} cross-check(s) named` : "pending",
+            state: audit ? "done" : "off",
+          },
+          {
+            label: "Analyst panel",
+            detail: op ? `${op.panelists} agents · ${(op.concerns ?? []).length} concern(s) · ${op.consensus_count ?? 0} consensus` : "not yet run",
+            state: op ? ((op.consensus_count ?? 0) > 0 ? "warn" : "done") : "off",
+          },
+          {
+            label: "Machine corroboration",
+            detail: machine ? "promoted — labeled ai_corroborated publicly" : audit?.verdict === "needs_additional_verification" ? "withheld — doubts outstanding" : "—",
+            state: machine ? "done" : audit ? "warn" : "off",
+          },
+          {
+            label: "Human decision",
+            detail: human ? `${human.new_status.replace(/_/g, " ")} — ${human.reviewer}` : "none (optional at this stage)",
+            state: human ? "done" : "off",
+          },
+        ];
+        return (
+          <div className="journey">
+            {steps.map((s) => (
+              <div className={`step s-${s.state}`} key={s.label}>
+                <span className="step-dot" />
+                <span className="step-label">{s.label}</span>
+                <span className="step-detail">{s.detail}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       <dl className="kv">
         <dt>Event ID</dt><dd>{ev.event_id}</dd>
         <dt>Location</dt><dd>{ev.location ? `${ev.location.lat.toFixed(4)}, ${ev.location.lon.toFixed(4)}` : "—"}</dd>
@@ -131,24 +177,57 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
         </dd>
       </dl>
 
-      {ev.ai_audit && (
-        <div className="audit-panel">
-          <h3>
-            AI audit — advisory only
-            <span className={`audit-chip a-${ev.ai_audit.verdict}`}>
-              {ev.ai_audit.verdict.replace(/_/g, " ")} · {ev.ai_audit.score.toFixed(2)}
-            </span>
-          </h3>
-          <ul>
-            {ev.ai_audit.reasons.map((r) => <li key={r}>{r}</li>)}
-          </ul>
-          {typeof ev.ai_audit.llm_opinion?.reviewer_summary === "string" && (
-            <p className="analyst">Analyst: {ev.ai_audit.llm_opinion.reviewer_summary}</p>
-          )}
-          <span className="engine">{ev.ai_audit.engine} · human review always required</span>
-        </div>
-      )}
+      {ev.ai_audit && (() => {
+        const audit = ev.ai_audit;
+        const op = (audit.llm_opinion ?? null) as {
+          desk?: string; panelists?: number; consensus_count?: number;
+          concerns?: string[]; digest_notes?: string[];
+        } | null;
+        const ruleReasons = audit.reasons.filter((r) => !LENS_RE.test(r));
+        const byAgent = new Map<string, string[]>();
+        for (const c of op?.concerns ?? []) {
+          const m = LENS_RE.exec(c);
+          const agent = m ? m[1] : "analyst";
+          byAgent.set(agent, [...(byAgent.get(agent) ?? []), c.replace(LENS_RE, "")]);
+        }
+        return (
+          <div className="audit-panel">
+            <h3>
+              AI audit — advisory only
+              <span className={`audit-chip a-${audit.verdict}`}>
+                {audit.verdict.replace(/_/g, " ")} · {audit.score.toFixed(2)}
+              </span>
+            </h3>
+            <ul>{ruleReasons.map((r) => <li key={r}>{r}</li>)}</ul>
+            {op && (
+              <div className="agents">
+                <span className="agents-head">
+                  Desk {op.desk} · {op.panelists} analyst agents
+                  {typeof op.consensus_count === "number" && op.consensus_count > 0 &&
+                    ` · ${op.consensus_count} consensus objection(s)`}
+                </span>
+                {[...byAgent.entries()].map(([agent, items]) => (
+                  <details className="agent" key={agent}>
+                    <summary>{agent.replace(/_/g, " ")} — {items.length} concern(s)</summary>
+                    <ul>{items.map((c) => <li key={c}>{c}</li>)}</ul>
+                  </details>
+                ))}
+                {byAgent.size === 0 && <span className="agents-clear">No concerns raised by the panel.</span>}
+                {(op.digest_notes ?? []).length > 0 && (
+                  <details className="agent">
+                    <summary>digest-level notes</summary>
+                    <ul>{(op.digest_notes ?? []).map((n) => <li key={n}>{n}</li>)}</ul>
+                  </details>
+                )}
+              </div>
+            )}
+            <span className="engine">{audit.engine} · machine opinions never verify</span>
+          </div>
+        );
+      })()}
 
+      <details className="operator">
+        <summary>Operator actions — restricted (see docs/REVIEW_SECURITY_POLICY.md)</summary>
       <div className="evidence">
         <h3>
           External evidence
@@ -194,6 +273,20 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
         {evMsg && <span className={evMsg.ok ? "ok" : "err"}>{evMsg.text}</span>}
       </div>
 
+      {contributions.length > 0 && (
+        <div className="evidence">
+          <h3>Public contributions — moderation queue</h3>
+          {contributions.map((c) => (
+            <div className="ev-row" key={c.contribution_id}>
+              <span className="ev-dir d-context">{c.status}</span>
+              {c.url && <a href={c.url} target="_blank" rel="noreferrer">{new URL(c.url).hostname}</a>}
+              <span className="ev-note">{c.text}</span>
+            </div>
+          ))}
+          <span className="ev-summary">Incorporation is manual: validate and attach as evidence above.</span>
+        </div>
+      )}
+
       <div className="decision">
         <h3>Decision</h3>
         <div className="status-row">
@@ -232,6 +325,8 @@ function Detail({ ev, reviewer, onReviewed }: { ev: GPEvent; reviewer: string; o
           {msg && <span className={msg.ok ? "ok" : "err"}>{msg.text}</span>}
         </div>
       </div>
+
+      </details>
 
       {history.length > 0 && (
         <div className="history">

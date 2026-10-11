@@ -1,0 +1,7 @@
+SIPRI Arms Transfers Database — SYNTHETIC TEST FIXTURE (not real data)
+All entries below are invented for pipeline testing only.
+
+Supplier,Recipient,Designation,Description,Armament category,Order date,Order date is estimate,Numbers delivered,Numbers delivered is estimate,Delivery year,Delivery year is estimate,Status,SIPRI TIV of delivered weapons
+Testland,Examplestan,TX-1,test transport aircraft,Aircraft,2021,,2,,2023,,delivered,12
+Testland,Samplia,AV-9,test armoured vehicle,Armoured vehicles,2022,yes,10,yes,2024,yes,delivered,8
+Mockovia,Examplestan,RB-3,test radar system,Sensors,2020,,1,,2022,,delivered,5

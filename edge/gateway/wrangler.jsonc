@@ -5,10 +5,17 @@
   "compatibility_date": "2026-10-10",
   "compatibility_flags": ["nodejs_compat"],
 
-  // Attach to the zone once DNS is active:
+  // The Worker owns the whole zone: static frontend assets at /*,
+  // API gateway logic at /api/* (assets are checked first; misses fall
+  // through to the fetch handler).
   "routes": [
-    { "pattern": "globalpeace.ai/api/*", "zone_name": "globalpeace.ai" }
+    { "pattern": "globalpeace.ai/*", "zone_name": "globalpeace.ai" }
   ],
+
+  "assets": {
+    "directory": "../../frontend/dist",
+    "not_found_handling": "single-page-application"
+  },
 
   "observability": {
     "enabled": true,

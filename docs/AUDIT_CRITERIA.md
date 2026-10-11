@@ -52,3 +52,38 @@ path always human-routed).
 A Claude analyst can add a second opinion (concerns the rules missed, summary
 for the reviewer). It is advisory: it cannot change the rules verdict upward,
 only flag additional doubt. Runs only when API credentials are configured.
+
+## Continental analyst desks (pipelines/audit/continents.py, desks.py)
+
+The LLM layer is organised as **six continental desks** — Africa, Asia,
+Europe, North America, South America, Oceania — each deploying a panel of
+**six analyst agents** over its region's current reporting digest. Each
+panelist analyses the same digest under a distinct lens: source criticism,
+methodology, regional context, corroboration independence, temporal
+consistency, humanitarian impact.
+
+Aggregation (same-direction opinions): every concern is attributed to its
+lens; concerns raised independently by two or more panelists are counted as
+panel consensus. Panels are advisory — any concern can downgrade
+`credible_recent` to `needs_additional_verification`, and nothing a panel
+says can upgrade a verdict or mark anything verified. Desks run only where
+there are unaudited events, and the pipeline degrades to rules-only when the
+LLM layer is unavailable.
+
+Run: `python -m audit.run --with-desks` (panel size configurable via
+`--panel-size`; requires Anthropic API credentials on the pipeline host).
+
+## Source vetting subsystem (pipelines/vetting/)
+
+New internet sources are vetted by a three-lens agentic panel — provenance,
+content integrity, manipulation signals — against a fetched sample of the
+source's output. Promotion doctrine: a source is auto-promoted to `vetted`
+(tier 0.65 in the audit rules) **only on a unanimous panel with low
+manipulation risk**, and always as `provisional` pending human ratification
+in `vetting/registry.yaml`. Disagreement → `watch`; any rejection or high
+manipulation risk → `rejected` (tier 0.05, flagged wherever cited).
+Vetting trusts a *source*; it never verifies an individual claim — events
+from vetted sources still enter as claims and still face cross-checks.
+Institutional tier remains hand-curated (IOM, UNHCR, ACLED, FEWS NET, WHO…).
+
+Run: `python -m vetting.run <url>`

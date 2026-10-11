@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev]
+
+jobs:
+  tests:
+    name: Governance invariants & pipeline units
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install
+        run: pip install -q pytest httpx feedparser pyyaml pydantic pydantic-settings fastapi "sqlalchemy[asyncio]" geoalchemy2 shapely
+      - name: Pytest
+        run: python -m pytest tests/ -q
+
+  backend-import:
+    name: Backend app imports cleanly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install backend deps
+        run: pip install -q fastapi "uvicorn[standard]" "sqlalchemy[asyncio]" asyncpg geoalchemy2 pydantic-settings shapely httpx neo4j
+      - name: Import check + route table
+        working-directory: backend
+        run: |
+          python -c "
+          from app.main import app
+          paths = sorted(app.openapi()['paths'])
+          assert '/public/events' in paths and '/review/queue' in paths, paths
+          print(len(paths), 'routes OK')"
+
+  frontend:
+    name: Frontend typecheck & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - working-directory: frontend
+        run: |
+          npm ci --no-fund --no-audit
+          npm run build
+
+  gateway:
+    name: Workers gateway typecheck & dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: edge/gateway/package-lock.json }
+      - name: Build frontend assets (served by the Worker at the zone root)
+        working-directory: frontend
+        run: |
+          npm ci --no-fund --no-audit
+          npm run build
+      - working-directory: edge/gateway
+        run: |
+          npm ci --no-fund --no-audit
+          # CI stub for gitignored .dev.vars so `wrangler types` emits the full Env
+          printf 'ORIGIN_URL=http://localhost:8000\nGATEWAY_SHARED_SECRET=ci\nCF_ACCESS_CLIENT_ID=\nCF_ACCESS_CLIENT_SECRET=\n' > .dev.vars
+          npx wrangler types
+          npx tsc --noEmit
+          npx wrangler deploy --dry-run

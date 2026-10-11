@@ -1,13 +1,14 @@
 """Posts normalised events to the origin API. Ingested items are always
 information_type=claim — verification is a separate, audited step."""
-import os
+import sys
+from pathlib import Path
 
 import httpx
 
-from .items import RawItem
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from common import API_URL, api_headers  # noqa: E402
 
-API_URL = os.environ.get("GPAI_API_URL", "http://localhost:8000")
-GATEWAY_SECRET = os.environ.get("GPAI_GATEWAY_SHARED_SECRET", "")
+from .items import RawItem
 
 
 def post_event(item: RawItem, event_type: str, confidence: float) -> dict:
@@ -23,9 +24,6 @@ def post_event(item: RawItem, event_type: str, confidence: float) -> dict:
         "actors": [],
         "civilian_impact": {},
     }
-    headers = {}
-    if GATEWAY_SECRET:
-        headers["x-gateway-secret"] = GATEWAY_SECRET
-    resp = httpx.post(f"{API_URL}/events", json=payload, headers=headers, timeout=30)
+    resp = httpx.post(f"{API_URL}/events", json=payload, headers=api_headers(), timeout=30)
     resp.raise_for_status()
     return resp.json()

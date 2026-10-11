@@ -9,7 +9,20 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlparse
+
+import yaml
+
+_REGISTRY = None
+
+
+def _registry() -> dict:
+    global _REGISTRY
+    if _REGISTRY is None:
+        p = Path(__file__).parent.parent / "vetting" / "registry.yaml"
+        _REGISTRY = yaml.safe_load(p.read_text())["sources"] if p.exists() else {}
+    return _REGISTRY
 
 FRESH_DAYS = 3
 RECENT_DAYS = 14
@@ -18,6 +31,7 @@ RECENT_DAYS = 14
 INSTITUTIONAL = (
     "reliefweb.int", "un.org", "unhcr.org", "wfp.org", "who.int", "unocha.org",
     "fews.net", "acleddata.com", "icrc.org", "data.humdata.org",
+    "iom.int", "missingmigrants.iom.int", "dtm.iom.int",
 )
 KNOWN_NGO = ("msf.org", "savethechildren.net", "nrc.no", "rescue.org", "crisisgroup.org")
 
@@ -29,7 +43,9 @@ CROSS_CHECKS: list[tuple[str, str, str]] = [
     (r"attack|attaque|clash|violen|killed|tu[ée]s|incident|conflict event|affected [\d,]+ people",
      "conflict_figures", "cross-check against ACLED's underlying dataset; interpret 'affected N people' per ACLED methodology"),
     (r"price|prix|march[ée]|market|food insecur|ins[ée]curit[ée] alimentaire|famine|harvest|r[ée]colte|lean season|soudure",
-     "market_figures", "compare with FEWS NET market data and local market-monitoring sources"),
+     "market_figures", "compare with INDEPENDENT market data: WFP VAM, national market information systems (e.g. SISAAP in Chad); FEWS NET's own data cannot verify a FEWS NET price claim (circularity flagged by the audit desk)"),
+    (r"boat|capsiz|drown|shipwreck|naufrag|migrant deaths?|missing migrants",
+     "migrant_casualty_figures", "cross-check with IOM Missing Migrants Project data; casualty counts in early reporting are routinely revised"),
     (r"cholera|measles|epidemic|health needs|malnutrition",
      "health_figures", "cross-check with WHO/UNICEF surveillance data"),
 ]
@@ -39,12 +55,24 @@ def source_tier(urls: list[str]) -> tuple[str, float]:
     if not urls:
         return "none", 0.1
     best = ("unknown", 0.4)
+    reg = _registry()
     for u in urls:
         host = urlparse(u).hostname or ""
         if any(host == d or host.endswith("." + d) for d in INSTITUTIONAL):
             return "institutional", 0.8
+        for domain, entry in reg.items():
+            if host == domain or host.endswith("." + domain):
+                tier = entry.get("tier")
+                if tier == "institutional":
+                    return "institutional", 0.8
+                if tier == "rejected":
+                    return "rejected_source", 0.05
+                if tier == "vetted":
+                    best = max(best, ("vetted", 0.65), key=lambda t: t[1])
+                elif tier == "watch":
+                    best = max(best, ("watch", 0.3), key=lambda t: t[1])
         if any(host == d or host.endswith("." + d) for d in KNOWN_NGO):
-            best = ("known_ngo", 0.6)
+            best = max(best, ("known_ngo", 0.6), key=lambda t: t[1])
     return best
 
 
@@ -66,23 +94,45 @@ def required_cross_checks(text: str) -> dict[str, str]:
     return checks
 
 
-def corroboration(event: dict, all_events: list[dict]) -> int:
-    """Other events, same country, within ±7 days, from a different source domain."""
-    def domains(ev):
-        return {urlparse(u).hostname for u in ev.get("source_urls", [])}
+# Publisher identification: independence means different ORIGINATING
+# organisations, not different URLs — a clearing house (ReliefWeb) hosts many
+# publishers under one domain (flagged by the Africa desk's corroboration
+# analyst on first live run).
+PUBLISHERS = (
+    "UNHCR", "WFP", "OCHA", "IOM", "MSF", "WHO", "UNICEF", "ICRC", "FEWS",
+    "Key Message Update",  # FEWS NET series title
+    "Bureau de Coordination", "Qatar Charity", "FAO", "NRC", "ACLED",
+)
 
+
+def publisher_of(event: dict) -> str:
+    title = (event.get("title") or "").upper()
+    for p in PUBLISHERS:
+        if p.upper() in title:
+            return "FEWS NET" if p in ("FEWS", "Key Message Update") else p
+    # fallback: the source domain (conservative — clearing-house items
+    # without a recognisable publisher cannot corroborate each other)
+    for u in event.get("source_urls", []):
+        return urlparse(u).hostname or "unknown"
+    return "unknown"
+
+
+def corroboration(event: dict, all_events: list[dict]) -> int:
+    """Other events, same country, within ±7 days, from a different
+    originating publisher (title-derived; domain as fallback)."""
     dt = datetime.fromisoformat(event["date_time"].replace("Z", "+00:00"))
-    mine = domains(event)
-    n = 0
+    mine = publisher_of(event)
+    seen: set[str] = set()
     for other in all_events:
         if other["event_id"] == event["event_id"] or other["country"] != event["country"]:
             continue
         odt = datetime.fromisoformat(other["date_time"].replace("Z", "+00:00"))
         if abs((odt - dt).total_seconds()) > 7 * 86400:
             continue
-        if domains(other) - mine:
-            n += 1
-    return n
+        p = publisher_of(other)
+        if p != mine and p != "unknown":
+            seen.add(p)
+    return len(seen)
 
 
 def audit_event(event: dict, all_events: list[dict], now: datetime | None = None) -> dict:
