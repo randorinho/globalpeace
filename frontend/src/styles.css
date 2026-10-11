@@ -291,3 +291,17 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .hra-action { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
 .hra-atext { color: var(--gp-ink); }
 .hra-selfaudit { margin-top: 6px; font-size: 12.5px; color: var(--gp-ink-muted); border-top: 1px solid var(--gp-border); padding-top: 8px; }
+
+/* solutions engine */
+.sol-country { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.sol-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.sol-card { border: 1px solid var(--gp-border); border-radius: 6px; background: var(--gp-bg); padding: 10px 14px; }
+.sol-card summary { cursor: pointer; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.sol-card p { margin: 8px 0 0; font-size: 13px; }
+.sol-level { font: 500 10.5px var(--gp-font-mono); text-transform: uppercase; letter-spacing: 0.06em; border-radius: 3px; padding: 2px 7px; }
+.l-political { background: color-mix(in srgb, var(--gp-primary) 14%, transparent); color: var(--gp-primary); }
+.l-economic { background: color-mix(in srgb, var(--gp-alert) 16%, transparent); color: color-mix(in srgb, var(--gp-alert) 55%, var(--gp-ink)); }
+.sol-title { font-weight: 600; font-size: 13.5px; }
+.sol-conf { font: 400 11px var(--gp-font-mono); color: var(--gp-ink-muted); }
+.sol-why { color: var(--gp-ink-muted); }
+.sol-risk { color: color-mix(in srgb, var(--gp-alert) 45%, var(--gp-ink)); }

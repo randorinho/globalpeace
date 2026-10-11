@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from .config import settings
 from .db import Base, engine
-from .routers import events, evidence, health, hra, public, review
+from .routers import events, evidence, health, hra, public, review, solutions
 
 
 @asynccontextmanager
@@ -38,3 +38,4 @@ app.include_router(review.router)
 app.include_router(public.router)
 app.include_router(evidence.router)
 app.include_router(hra.router)
+app.include_router(solutions.router)
