@@ -46,6 +46,7 @@ See the full documentation:
 | [docs/ROADMAP.md](docs/ROADMAP.md) | 90-day MVP pilot and first functional version |
 | [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) | Edge/origin split — domain and edge layer on Cloudflare |
 | [docs/references/apdsi-un-charter-reform.md](docs/references/apdsi-un-charter-reform.md) | APDSI letter: UN Charter reform proposal on autonomous-systems governance (reference) |
+| [docs/BACKLOG.md](docs/BACKLOG.md) | Internal backlog — P0 operational trust → P2 Solutions Engine → DevEx |
 
 ## Repository layout
 
