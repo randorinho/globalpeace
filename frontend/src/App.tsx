@@ -21,7 +21,7 @@ function Badge({ status }: { status: VerificationStatus }) {
   );
 }
 
-function Card({ ev, selected, onClick }: { ev: GPEvent; selected: boolean; onClick: () => void }) {
+function Card({ ev, selected, onClick, publicView = false }: { ev: GPEvent; selected: boolean; onClick: () => void; publicView?: boolean }) {
   return (
     <button type="button" className={`card${selected ? " selected" : ""}`} onClick={onClick}>
       <div className="top">
@@ -30,11 +30,20 @@ function Card({ ev, selected, onClick }: { ev: GPEvent; selected: boolean; onCli
         <Badge status={ev.verification_status} />
       </div>
       {ev.title && <span className="title">{ev.title}</span>}
-      {ev.ai_audit && (
+      {ev.ai_audit && (publicView ? (
+        (() => {
+          const open = Object.keys(ev.ai_audit.cross_checks ?? {}).length;
+          return (
+            <span className="audit-chip a-public">
+              AI audit · {open > 0 ? `${open} independent check(s) open` : "all checks closed"}
+            </span>
+          );
+        })()
+      ) : (
         <span className={`audit-chip a-${ev.ai_audit.verdict}`}>
           AI: {ev.ai_audit.verdict.replace(/_/g, " ")}
         </span>
-      )}
+      ))}
       <span className="meta">
         {fmt(ev.date_time)} · conf {ev.confidence.toFixed(2)} · {ev.information_type}
       </span>
@@ -449,7 +458,7 @@ function PublicTrails() {
           </p>
         </div>
         {events.map((ev) => (
-          <Card key={ev.event_id} ev={ev} selected={ev.event_id === selectedId} onClick={() => setSelectedId(ev.event_id)} />
+          <Card key={ev.event_id} ev={ev} selected={ev.event_id === selectedId} onClick={() => setSelectedId(ev.event_id)} publicView />
         ))}
       </div>
       <div className="detail">
