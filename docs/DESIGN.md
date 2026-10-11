@@ -20,6 +20,23 @@ GOVERNANCE.md data-minimisation), and it keeps working under a strict CSP.
 Tokens live in [`frontend/design/tokens.css`](../frontend/design/tokens.css) —
 semantic variables (`--gp-primary`, `--gp-alert`, …), never raw hexes in components.
 
+## Verification-status color ladder
+
+One ladder, one hue family for trust — distinctions by depth, not by hue
+swaps, so the legend stays learnable as statuses multiply:
+
+| Status | Color | Token |
+|---|---|---|
+| verified (human) | green `#2B8C72` | `--gp-status-verified` |
+| partially verified (human) | mint `#63CDA3` | `--gp-status-partial` |
+| ai_corroborated (machine) | sea-green `#37675D` — green family, muted toward slate: trust, explicitly machine | `--gp-status-ai` |
+| unverified | slate `#41484C` (operator surfaces only — never public) | `--gp-status-unverified` |
+| disputed | amber tint | `--gp-status-disputed` |
+| retracted | muted brown | `--gp-status-retracted` |
+
+Rule: grey/slate always means "not yet treated / muted", and must never be
+used for a trust state. Machine trust is green-family but visibly damped.
+
 ## Accessibility notes
 
 - White text on `#2B8C72` passes AA for large text only — use white on green for

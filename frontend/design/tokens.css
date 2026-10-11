@@ -27,9 +27,13 @@
   --gp-alert:         var(--gp-amber);      /* alerts, CTAs — pair with dark ink, not white */
   --gp-border:        #d7ddda;
 
-  /* verification-status colors (data model, docs/DATA_MODEL.md) */
+  /* verification-status colors (data model, docs/DATA_MODEL.md)
+     Trust ladder: human greens > machine sea-green > neutral slate.
+     --gp-status-ai is green-family (it IS a trust state) but muted toward
+     slate so machine corroboration never impersonates human verification. */
   --gp-status-verified:   var(--gp-green);
   --gp-status-partial:    var(--gp-mint);
+  --gp-status-ai:         #37675D;
   --gp-status-unverified: var(--gp-slate-600);
   --gp-status-disputed:   var(--gp-amber);
   --gp-status-retracted:  #8a6d6d;

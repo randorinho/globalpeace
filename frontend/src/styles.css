@@ -228,7 +228,7 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .contribute .ok, .contribute .err { font-size: 12.5px; }
 
 /* ai_corroborated status + agent process panel */
-.b-ai_corroborated { background: color-mix(in srgb, var(--gp-slate-600) 16%, transparent); color: var(--gp-ink-muted); }
+.b-ai_corroborated { background: color-mix(in srgb, var(--gp-status-ai) 18%, transparent); color: color-mix(in srgb, var(--gp-status-ai) 75%, var(--gp-ink)); }
 .agents { display: flex; flex-direction: column; gap: 6px; }
 .agents-head { font: 500 12px var(--gp-font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--gp-ink-muted); }
 .agent summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gp-ink); padding: 3px 0; }
