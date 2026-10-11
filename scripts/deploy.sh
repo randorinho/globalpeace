@@ -18,6 +18,9 @@ fi
 echo "→ origin: rebuild API + ensure tunnel"
 docker compose -f infra/docker-compose.yml --profile tunnel up -d --build api cloudflared
 
+echo "→ frontend: build static assets"
+(cd frontend && npm ci --no-fund --no-audit >/dev/null 2>&1 || npm install --no-fund --no-audit >/dev/null; npm run build)
+
 echo "→ edge: typecheck + deploy Worker"
 (cd edge/gateway && npx tsc --noEmit && npx wrangler deploy)
 
@@ -28,6 +31,7 @@ curl -sf --max-time 20 https://globalpeace.ai/api/edge-healthz >/dev/null \
                                                              && echo "  ✓ edge healthy"
 curl -sf --max-time 30 https://globalpeace.ai/api/public/events >/dev/null \
                                                              && echo "  ✓ public feed through full chain"
+curl -sf --max-time 20 https://globalpeace.ai/ | grep -q globalpeace && echo "  ✓ frontend served at zone root"
 code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://origin.globalpeace.ai/events)
 [[ "$code" == "403" ]] && echo "  ✓ origin rejects unauthenticated access (403)" \
                        || { echo "  ✗ SECURITY: origin returned $code without secret" >&2; exit 1; }
