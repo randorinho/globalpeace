@@ -27,6 +27,14 @@
   --gp-alert:         var(--gp-amber);      /* alerts, CTAs — pair with dark ink, not white */
   --gp-border:        #d7ddda;
 
+  /* conflict-pressure scale (brandbook): measures situation PRESSURE on
+     vital systems, never country character. Sequential warm ramp, lightness-
+     separated for color-vision deficiency; grey start keeps "watch" neutral. */
+  --gp-pressure-watch:   #7A8C94;
+  --gp-pressure-concern: #C98A2D;
+  --gp-pressure-severe:  #B4552D;
+  --gp-pressure-alarm:   #8C2F39;
+
   /* verification-status colors (data model, docs/DATA_MODEL.md)
      Trust ladder: human greens > machine sea-green > neutral slate.
      --gp-status-ai is green-family (it IS a trust state) but muted toward

@@ -50,6 +50,7 @@ See the full documentation:
 | [docs/REVIEW_SECURITY_POLICY.md](docs/REVIEW_SECURITY_POLICY.md) | DRAFT — controls required before human-review expansion; interim AI-corroboration regime |
 | [docs/HUMAN_RIGHTS_AGENT.md](docs/HUMAN_RIGHTS_AGENT.md) | Independent HRA: vitals immune system, development auditor, published position |
 | [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | AI-Act-oriented controls: logging, closed-context agents, human oversight, transparency |
+| [docs/BRANDBOOK.md](docs/BRANDBOOK.md) | Identity: the pulse mark, core palette, conflict-pressure scale, sharing assets |
 
 ## Repository layout
 

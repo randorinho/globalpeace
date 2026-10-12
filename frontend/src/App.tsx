@@ -543,7 +543,14 @@ export default function App() {
   return (
     <div className="app">
       <div className="topbar">
-        <h1><span className="brand">globalpeace.ai</span></h1>
+        <h1 className="brand-lockup">
+          <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <circle cx="32" cy="32" r="24" stroke="var(--gp-primary)" strokeWidth="4.5" />
+            <path d="M15 32h7l4.5-8 7 16 4.5-8h11" stroke="var(--gp-primary)" strokeWidth="4.5"
+                  strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="brand">globalpeace.ai</span>
+        </h1>
         <nav className="nav">
           <a href="#/" className={review ? "" : "on"}>Map</a>
           <a href="#/review" className={review ? "on" : ""}>Review</a>
