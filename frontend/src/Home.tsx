@@ -10,6 +10,16 @@ import type { GPEvent } from "./types";
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 const COUNTRY_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
+
+// Conflict-pressure scale (brandbook): situation pressure on vital systems,
+// never country character. Thresholds mirror the HRA levels.
+function pressureColor(p: number): string | null {
+  if (p >= 0.66) return "#8C2F39"; // alarm
+  if (p >= 0.45) return "#B4552D"; // severe
+  if (p >= 0.33) return "#C98A2D"; // concern
+  if (p > 0.05) return "#7A8C94";  // watch
+  return null;
+}
 const fmt = (iso: string) => iso.slice(0, 10);
 
 // Treatment colors — same tokens as the review dashboard badges.
@@ -167,6 +177,38 @@ export default function Home() {
       setErr((prev) => prev || `map: ${e.error?.message ?? "load failed"}`);
     });
     map.on("load", () => {
+      // conflict-pressure halos (HRA vitals) — the base layer
+      const halos = {
+        type: "FeatureCollection" as const,
+        features: hra ? Object.entries(hra.vitals).flatMap(([c, d]) => {
+          const color = pressureColor(d.pressure);
+          const center = centroidFor(c);
+          if (!color || !center) return [];
+          return [{
+            type: "Feature" as const,
+            geometry: { type: "Point" as const, coordinates: center },
+            properties: { color, radius: 26 + d.pressure * 34,
+                          label: `${COUNTRY_NAMES.of(c) ?? c}: pressure ${d.pressure.toFixed(2)} (HRA vitals)` },
+          }];
+        }) : [],
+      };
+      map.addSource("pressure", { type: "geojson", data: halos });
+      map.addLayer({
+        id: "pressure-halos", type: "circle", source: "pressure",
+        paint: {
+          "circle-radius": ["get", "radius"],
+          "circle-color": ["get", "color"],
+          "circle-opacity": 0.16,
+          "circle-stroke-color": ["get", "color"],
+          "circle-stroke-width": 1.2,
+          "circle-stroke-opacity": 0.5,
+        },
+      });
+      map.on("click", "pressure-halos", (e: maplibregl.MapLayerMouseEvent) => {
+        const p = e.features?.[0]?.properties;
+        if (p) new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<strong>${p.label}</strong>`).addTo(map);
+      });
+
       // influence lines (documented arms transfers) under the event circles
       map.addSource("transfers", { type: "geojson", data: transferFeatures(transfers) });
       map.addLayer({
@@ -209,7 +251,7 @@ export default function Home() {
       }
     });
     return () => map.remove();
-  }, [events, transfers]);
+  }, [events, transfers, hra]);
 
   const submitContribution = async () => {
     setCBusy(true); setCMsg(null);
@@ -256,6 +298,13 @@ export default function Home() {
             <span><i className="sw" style={{ background: "#63CDA3" }} /> partially verified</span>
             <span><i className="sw" style={{ background: "#37675D" }} /> AI-corroborated (machine trust tier)</span>
             <span><i className="sw line" /> documented arms transfers (SIPRI)</span>
+            <span className="legend-pressure">
+              halo = conflict pressure:
+              <i className="sw" style={{ background: "#7A8C94" }} /> watch
+              <i className="sw" style={{ background: "#C98A2D" }} /> concern
+              <i className="sw" style={{ background: "#B4552D" }} /> severe
+              <i className="sw" style={{ background: "#8C2F39" }} /> alarm
+            </span>
             <span className="legend-note">circle size = confidence + civilian impact · thick outline = exact location</span>
           </div>
         </div>

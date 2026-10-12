@@ -310,3 +310,10 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .related-link:hover { color: var(--gp-primary); }
 
 .a-public { background: color-mix(in srgb, var(--gp-slate-600) 12%, transparent); color: var(--gp-ink-muted); }
+
+/* brand lockup */
+.brand-lockup { display: flex; align-items: center; gap: 9px; }
+.brand-lockup svg { width: 24px; height: 24px; }
+
+.legend-pressure { display: inline-flex; align-items: center; gap: 6px; }
+.legend-pressure .sw { margin-left: 8px; }

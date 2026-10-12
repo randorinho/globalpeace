@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 64" fill="none">
+  <circle cx="32" cy="32" r="24" stroke="#2B8C72" stroke-width="4.5"/>
+  <path d="M15 32h7l4.5-8 7 16 4.5-8h11"
+        stroke="#63CDA3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="72" y="41" font-family="Roboto, system-ui, sans-serif" font-size="27"
+        font-weight="700" letter-spacing="-0.5" fill="#2A353D">globalpeace<tspan fill="#2B8C72">.ai</tspan></text>
+</svg>
