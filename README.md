@@ -51,6 +51,7 @@ See the full documentation:
 | [docs/HUMAN_RIGHTS_AGENT.md](docs/HUMAN_RIGHTS_AGENT.md) | Independent HRA: vitals immune system, development auditor, published position |
 | [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | AI-Act-oriented controls: logging, closed-context agents, human oversight, transparency |
 | [docs/BRANDBOOK.md](docs/BRANDBOOK.md) | Identity: the pulse mark, core palette, conflict-pressure scale, sharing assets |
+| [docs/FUNDING.md](docs/FUNDING.md) | Public & non-profit funding model: principles, fiscal host, DPG path, grant pipeline |
 
 ## Repository layout
 
