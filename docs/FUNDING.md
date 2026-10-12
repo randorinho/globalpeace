@@ -27,7 +27,7 @@ stage can show that.
 
 | Step | Why | Status |
 |---|---|---|
-| **Open license on the repo** | Prerequisite for everything below (DPG standard requires an approved open license; most grants require OSI license). Recommendation: AGPL-3.0 (protects against closed-SaaS capture) | ☐ decision needed |
+| **Open license on the repo** | Prerequisite for everything below (DPG standard requires an approved open license; most grants require OSI license) | ☑ AGPL-3.0 (2026-10-12) |
 | **Fiscal host: Open Collective Europe** | Belgian nonprofit umbrella: receive donations, grants and public subsidies with no legal entity of our own; ~8–10% fee; full ledger transparency matches our principles | ☐ apply |
 | **Digital Public Good registration** (digitalpublicgoods.net) | SDG 16 (peace, justice, strong institutions) fit is direct; DPG status is the credibility key to the UN/multilateral ecosystem | ☐ after license |
 | **GitHub Sponsors + Open Collective page** | Small recurring community funding; signals traction to grantmakers | ☐ |

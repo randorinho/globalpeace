@@ -64,6 +64,11 @@ infra/      docker-compose, deployment, observability
 docs/       Architecture and governance documentation
 ```
 
+## License
+
+[GNU AGPL-3.0](LICENSE) — the platform and any network-hosted derivative stay
+open. A peace commons cannot be captured into a closed service.
+
 ## Core safety rule
 
 > If information could endanger a person, the platform must not publish it automatically — even when the information is accurate.
