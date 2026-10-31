@@ -28,10 +28,32 @@ def test_classifier_maps_types_and_never_guesses():
     assert classify("Annual fisheries report") is None  # unmatched -> skipped, never guessed
 
 
-def test_country_matching_only_pilot():
-    pilots = {"sudan": "SD", "chad": "TD"}
-    assert match_country("Fighting intensifies in Sudan", pilots) == "SD"
-    assert match_country("Elections in Belgium", pilots) is None
+def test_country_matching_global_registry():
+    assert match_country("Fighting intensifies in Sudan") == "SD"
+    assert match_country("Elections in Belgium") == "BE"
+    # longest alias wins: South Sudan is not Sudan, Guinea-Bissau is not Guinea
+    assert match_country("Aid convoy reaches South Sudan") == "SS"
+    assert match_country("Coup attempt in Guinea-Bissau") == "GW"
+    assert match_country("Cholera outbreak in Guinea") == "GN"
+    # word boundaries: Niger is not Nigeria, India is not Indiana
+    assert match_country("Floods across Nigeria") == "NG"
+    assert match_country("Junta consolidates power in Niger") == "NE"
+    assert match_country("Indiana state fair opens") is None
+    # ambiguous bare names stay unmatched, never guessed
+    assert match_country("tensions rise on the Korean peninsula") is None
+    assert match_country("No geography here at all") is None
+
+
+def test_country_registry_is_complete_and_desked():
+    from audit.continents import COUNTRY_DESK  # noqa: E402
+    from ingest.countries import ALL_ISO2, ISO2_FROM_ISO3  # noqa: E402
+
+    # every registered country has a continental desk — nothing lands unassigned
+    undesked = sorted(ALL_ISO2 - COUNTRY_DESK.keys())
+    assert not undesked, f"countries without a desk: {undesked}"
+    # ReliefWeb attribution path: iso3 -> iso2 covers the whole registry
+    assert len(ISO2_FROM_ISO3) == len(ALL_ISO2)
+    assert ISO2_FROM_ISO3["COD"] == "CD" and ISO2_FROM_ISO3["SSD"] == "SS"
 
 
 def test_source_tiers():

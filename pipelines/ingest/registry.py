@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -18,7 +18,6 @@ class SourceConfig:
 @dataclass
 class Registry:
     sources: list[SourceConfig]
-    pilot_countries: dict[str, str] = field(default_factory=dict)
 
     def get(self, source_id: str) -> SourceConfig:
         for s in self.sources:
@@ -30,7 +29,4 @@ class Registry:
 def load_registry(path: Path | None = None) -> Registry:
     path = path or Path(__file__).parent / "sources.yaml"
     raw = yaml.safe_load(path.read_text())
-    return Registry(
-        sources=[SourceConfig(**s) for s in raw["sources"]],
-        pilot_countries={k.lower(): v for k, v in raw.get("pilot_countries", {}).items()},
-    )
+    return Registry(sources=[SourceConfig(**s) for s in raw["sources"]])

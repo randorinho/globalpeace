@@ -34,11 +34,7 @@ def classify(text: str) -> str | None:
     return None
 
 
-def match_country(text: str, pilot_countries: dict[str, str]) -> str | None:
-    """Name-based country match for sources with no structured country field.
-    Only pilot countries are matched; anything else returns None (item skipped)."""
-    lowered = text.lower()
-    for name, iso2 in pilot_countries.items():
-        if name in lowered:
-            return iso2
-    return None
+# Name-based country match for sources with no structured country field —
+# now the full ISO-3166 registry (see countries.py); unmatched items are
+# still skipped, never guessed.
+from .countries import match_country  # noqa: E402, F401

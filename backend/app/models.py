@@ -29,6 +29,11 @@ class Event(Base):
         String, default=InformationType.CLAIM
     )
     source_urls: Mapped[list] = mapped_column(JSON, default=list)
+    # First source URL, unique — server-side ingest dedupe (NULL allowed for
+    # events created without a source URL; Postgres permits repeated NULLs).
+    primary_source_url: Mapped[str | None] = mapped_column(
+        String(1000), nullable=True, unique=True
+    )
     source_language: Mapped[str] = mapped_column(String(8), default="en")
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     verification_status: Mapped[VerificationStatus] = mapped_column(

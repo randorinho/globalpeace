@@ -1,24 +1,28 @@
-# Source registry — the pilot starts narrow (see docs/ROADMAP.md: 3-5 regions).
-# Every source declares its confidence prior; ingested items are ALWAYS claims
-# until the verification layer upgrades them.
-
-pilot_countries:
-  # name-pattern → ISO2, used by connectors that carry no structured country field
-  sudan: SD
-  chad: TD
-  "south sudan": SS
-  "democratic republic of the congo": CD
-  haiti: HT
+# Source registry — global coverage. Country attribution comes from the
+# source's structured field when it has one, otherwise from full ISO-3166
+# name matching (ingest/countries.py). Every source declares its confidence
+# prior; ingested items are ALWAYS claims until the verification layer
+# upgrades them.
 
 sources:
+  # ReliefWeb REST API, all countries in one query (primary_country.iso3 is
+  # structured — no name matching involved). Requires a registered appname:
+  # set RELIEFWEB_APPNAME once approved:
+  # https://apidoc.reliefweb.int/parameters#appname
+  # Until then this source errors and is skipped; the RSS feeds below carry on.
+  - id: reliefweb-global
+    kind: reliefweb
+    confidence: 0.5      # institutional humanitarian reporting, still a claim
+    limit: 50
+
   # ReliefWeb country feeds via RSS (PC<id> = primary-country taxonomy id).
-  # The ReliefWeb REST API (kind: reliefweb) needs a registered appname —
-  # set RELIEFWEB_APPNAME once approved: https://apidoc.reliefweb.int/parameters#appname
+  # Kept for the original pilot countries as priority coverage; the global
+  # API source above supersedes them once RELIEFWEB_APPNAME is set.
   - id: reliefweb-sd
     kind: rss
     url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC220%29"
     country: SD
-    confidence: 0.5      # institutional humanitarian reporting, still a claim
+    confidence: 0.5
     limit: 10
 
   - id: reliefweb-td
@@ -51,19 +55,28 @@ sources:
 
   # IOM (International Organization for Migration / UN Migration) — org feed
   # via ReliefWeb (iom.int blocks direct RSS). Covers displacement and migrant
-  # casualties; items matched to pilot countries by name.
+  # casualties; items matched to countries by name (now global).
   - id: iom-reliefweb
     kind: rss
     url: "https://reliefweb.int/updates/rss.xml?advanced-search=%28S1255%29"
     confidence: 0.6
     limit: 20
 
-  # Global headlines — no fixed country: items are matched against
-  # pilot_countries by name; items mentioning no pilot country are skipped
-  # (logged), never guessed. (UN News RSS is a good addition where reachable:
-  # https://news.un.org/feed/subscribe/en/news/region/africa/rss.xml)
+  # Global headlines — no fixed country: items are matched against the full
+  # country registry by name; items naming no country are skipped (logged),
+  # never guessed.
   - id: reliefweb-headlines
     kind: rss
     url: "https://reliefweb.int/updates/rss.xml?view=headlines"
     confidence: 0.4
     limit: 20
+
+  # UN News — open global feed, no key, no WAF. Country attribution by name
+  # against the full registry. (ReliefWeb's site/RSS now sits behind an AWS
+  # WAF browser challenge — HTTP 202 — so until RELIEFWEB_APPNAME is approved
+  # for the API, this is the primary global source.)
+  - id: un-news-all
+    kind: rss
+    url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
+    confidence: 0.5
+    limit: 30

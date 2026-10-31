@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Point
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import get_session
@@ -40,6 +41,7 @@ def _to_out(ev: Event) -> EventOut:
 
 @router.post("", response_model=EventOut, status_code=201)
 async def create_event(body: EventCreate, session: AsyncSession = Depends(get_session)):
+    source_urls = [str(u) for u in body.source_urls]
     ev = Event(
         title=body.title,
         date_time=body.date_time,
@@ -47,7 +49,8 @@ async def create_event(body: EventCreate, session: AsyncSession = Depends(get_se
         actors=body.actors,
         event_type=body.event_type,
         information_type=body.information_type,
-        source_urls=[str(u) for u in body.source_urls],
+        source_urls=source_urls,
+        primary_source_url=source_urls[0] if source_urls else None,
         source_language=body.source_language,
         confidence=body.confidence,
         civilian_impact=body.civilian_impact,
@@ -55,7 +58,12 @@ async def create_event(body: EventCreate, session: AsyncSession = Depends(get_se
     if body.location:
         ev.geom = from_shape(Point(body.location.lon, body.location.lat), srid=4326)
     session.add(ev)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        # unique primary_source_url: this source URL is already ingested
+        await session.rollback()
+        raise HTTPException(409, "event with this source URL already exists")
     await session.refresh(ev)
     return _to_out(ev)
 

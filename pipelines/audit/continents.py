@@ -7,26 +7,29 @@ verification. Concerns raised independently by >=2 panelists are marked
 panel consensus (aggregation of same-direction opinions).
 """
 
-# ISO2 -> continent desk. Pilot countries first; extend as coverage grows.
+# ISO2 -> continent desk. Complete over the ingest country registry
+# (ingest/countries.py) — tests assert no registered country lands unassigned.
 COUNTRY_DESK: dict[str, str] = {
     # Africa
     **{c: "africa" for c in (
-        "SD TD SS CD NG ET KE UG CM CF NE ML BF MR LY EG DZ MA TN SO ER DJ RW BI TZ ZM ZW MZ AO GH CI SN GM GN GW SL LR TG BJ GA CG GQ BW NA SZ LS MW MG KM SC MU CV ST ZA".split()
+        "SD TD SS CD NG ET KE UG CM CF NE ML BF MR LY EG DZ MA TN SO ER DJ RW BI TZ ZM ZW MZ AO GH CI SN GM GN GW SL LR TG BJ GA CG GQ BW NA SZ LS MW MG KM SC MU CV ST ZA EH".split()
     )},
     # Asia
     **{c: "asia" for c in (
-        "AF PK IN BD LK NP MM TH KH LA VN MY SG ID PH CN JP KP KR MN KZ KG TJ TM UZ IR IQ SY LB JO IL PS SA YE OM AE QA BH KW TR AZ AM GE".split()
+        "AF PK IN BD LK NP MM TH KH LA VN MY SG ID PH CN JP KP KR MN KZ KG TJ TM UZ IR IQ SY LB JO IL PS SA YE OM AE QA BH KW TR AZ AM GE BT MV BN TL HK MO TW".split()
     )},
     # Europe
     **{c: "europe" for c in (
-        "UA RU BY MD RO BG RS BA XK MK AL ME HR SI HU SK CZ PL DE FR GB IE ES PT IT GR CY MT AT CH BE NL LU DK SE NO FI EE LV LT IS".split()
+        "UA RU BY MD RO BG RS BA XK MK AL ME HR SI HU SK CZ PL DE FR GB IE ES PT IT GR CY MT AT CH BE NL LU DK SE NO FI EE LV LT IS AD MC SM VA LI".split()
     )},
     # North America (incl. Central America & Caribbean)
-    **{c: "north_america" for c in "US CA MX GT HN SV NI CR PA CU HT DO JM TT BS BZ".split()},
+    **{c: "north_america" for c in (
+        "US CA MX GT HN SV NI CR PA CU HT DO JM TT BS BZ BB GD LC VC AG DM KN PR GL".split()
+    )},
     # South America
     **{c: "south_america" for c in "CO VE EC PE BO BR PY UY AR CL GY SR".split()},
     # Oceania
-    **{c: "oceania" for c in "AU NZ PG FJ SB VU WS TO".split()},
+    **{c: "oceania" for c in "AU NZ PG FJ SB VU WS TO KI FM MH NR PW TV CK NU NC AS".split()},
 }
 
 DESKS = ("africa", "asia", "europe", "north_america", "south_america", "oceania")

@@ -11,7 +11,9 @@ from common import API_URL, api_headers  # noqa: E402
 from .items import RawItem
 
 
-def post_event(item: RawItem, event_type: str, confidence: float) -> dict:
+def post_event(item: RawItem, event_type: str, confidence: float) -> dict | None:
+    """Post one claim; returns the created event, or None when the origin
+    already holds this source URL (server-side dedupe, HTTP 409)."""
     payload = {
         "title": item.title[:500],
         "date_time": item.published.isoformat(),
@@ -25,5 +27,7 @@ def post_event(item: RawItem, event_type: str, confidence: float) -> dict:
         "civilian_impact": {},
     }
     resp = httpx.post(f"{API_URL}/events", json=payload, headers=api_headers(), timeout=30)
+    if resp.status_code == 409:
+        return None
     resp.raise_for_status()
     return resp.json()

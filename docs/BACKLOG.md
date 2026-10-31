@@ -38,10 +38,22 @@ The platform is live at globalpeace.ai; these make it dependable.
       (the other named cross-check primary)
 - [x] **Source expansion** — remaining pilot countries (SS, CD, HT feeds),
       local-language/independent outlets per region
+- [x] **Global country registry** — full ISO-3166 alias table
+      (`pipelines/ingest/countries.py`), word-boundary longest-first matching;
+      all six continental desks cover every registered country. UN News global
+      feed added as the first keyless worldwide source.
+- [ ] **RELIEFWEB_APPNAME registration** (action: Ricardo) — ReliefWeb's site
+      and RSS now sit behind an AWS WAF browser challenge (HTTP 202 +
+      `x-amzn-waf-action: challenge`), which silently starved ingestion from
+      ~Oct 10. The sanctioned path is the REST API with an approved appname:
+      https://apidoc.reliefweb.int/parameters#appname — once approved, set
+      RELIEFWEB_APPNAME in infra/.env; the `reliefweb-global` source (all
+      countries, structured attribution) activates by itself.
 - [ ] **Geolocation extraction** — place names → coordinates with explicit
       precision flags (country/admin1/exact); map already renders the distinction
-- [ ] **Server-side dedupe** — unique index on source URL; drop reliance on the
-      local sqlite ledger
+- [x] **Server-side dedupe** — unique `primary_source_url` on events (alembic
+      `8f3d2c41b7e9`); POST /events answers 409 on a known source URL and the
+      ingester counts it as a dup. Local sqlite ledger kept as a fast pre-check.
 - [ ] **Country pages + timeline** — remaining MVP deliverables (docs/ROADMAP.md)
 - [ ] **Load real SIPRI export** — connector shipped; needs the portal CSV;
       UNROCA connector as second arms-data source
