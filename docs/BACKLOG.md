@@ -42,13 +42,14 @@ The platform is live at globalpeace.ai; these make it dependable.
       (`pipelines/ingest/countries.py`), word-boundary longest-first matching;
       all six continental desks cover every registered country. UN News global
       feed added as the first keyless worldwide source.
-- [ ] **RELIEFWEB_APPNAME registration** (action: Ricardo) — ReliefWeb's site
-      and RSS now sit behind an AWS WAF browser challenge (HTTP 202 +
-      `x-amzn-waf-action: challenge`), which silently starved ingestion from
-      ~Oct 10. The sanctioned path is the REST API with an approved appname:
-      https://apidoc.reliefweb.int/parameters#appname — once approved, set
-      RELIEFWEB_APPNAME in infra/.env; the `reliefweb-global` source (all
-      countries, structured attribution) activates by itself.
+- [~] **RELIEFWEB_APPNAME registration** — ReliefWeb's site and RSS now sit
+      behind an AWS WAF browser challenge (HTTP 202 + `x-amzn-waf-action:
+      challenge`), which silently starved ingestion from ~Oct 10. The
+      sanctioned path is the REST API with an approved appname. Request
+      submitted 2026-10-31 (reply promised within two business days, so by
+      ~2026-11-04). On approval: set RELIEFWEB_APPNAME in infra/.env; the
+      `reliefweb-global` source (all countries, structured attribution)
+      activates by itself.
 - [ ] **Geolocation extraction** — place names → coordinates with explicit
       precision flags (country/admin1/exact); map already renders the distinction
 - [x] **Server-side dedupe** — unique `primary_source_url` on events (alembic
