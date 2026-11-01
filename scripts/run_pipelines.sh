@@ -4,7 +4,9 @@
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 LOCK="$REPO/.pipeline.lock"
-LOG_DIR="$HOME/Library/Logs/gpai"
+# systemd services run without HOME; macOS/launchd set it
+: "${HOME:=/root}"
+if [[ "$(uname)" == "Darwin" ]]; then LOG_DIR="$HOME/Library/Logs/gpai"; else LOG_DIR="/var/log/gpai"; fi
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/pipelines-$(date +%Y%m%d).log"
 
