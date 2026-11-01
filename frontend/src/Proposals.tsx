@@ -5,15 +5,16 @@ import { COUNTRY_NAMES, fetchJSON, fmtDate } from "./mapdata";
  * section, ordered by a TRANSPARENT priority score computed from the published
  * HRA position (treated events only):
  *
- *   priority = 0.40 × population impact (population_stability pressure)
- *            + 0.30 × health pressure   (health_system)
- *            + 0.30 × armed-violence pressure (civilian_safety)
+ *   priority = 0.35 × population impact (population_stability pressure)
+ *            + 0.25 × health pressure   (health_system)
+ *            + 0.25 × armed-violence pressure (civilian_safety)
+ *            + 0.15 × poverty pressure  (poverty_and_livelihoods)
  *
  * Deliberately NOT a "war probability": the platform publishes no forecasts
  * (docs/GOVERNANCE.md). Every component is shown, every component is a 0..1
  * pressure score derived from cited, treated events with 14-day decay. */
 
-const WEIGHTS = { population: 0.4, health: 0.3, violence: 0.3 } as const;
+const WEIGHTS = { population: 0.35, health: 0.25, violence: 0.25, poverty: 0.15 } as const;
 
 interface SolutionSet {
   country: string; created_at: string; engine: string;
@@ -30,7 +31,7 @@ interface HraPosition {
 interface Ranked {
   set: SolutionSet;
   priority: number;
-  components: { population: number; health: number; violence: number };
+  components: { population: number; health: number; violence: number; poverty: number };
 }
 
 function rank(sets: SolutionSet[], hra: HraPosition | null): Ranked[] {
@@ -40,11 +41,13 @@ function rank(sets: SolutionSet[], hra: HraPosition | null): Ranked[] {
       population: v.population_stability?.score ?? 0,
       health: v.health_system?.score ?? 0,
       violence: v.civilian_safety?.score ?? 0,
+      poverty: v.poverty_and_livelihoods?.score ?? 0,
     };
     const priority =
       WEIGHTS.population * components.population +
       WEIGHTS.health * components.health +
-      WEIGHTS.violence * components.violence;
+      WEIGHTS.violence * components.violence +
+      WEIGHTS.poverty * components.poverty;
     return { set, priority: Math.round(priority * 1000) / 1000, components };
   });
   return ranked.sort((a, b) => b.priority - a.priority);
@@ -86,7 +89,8 @@ export default function Proposals() {
         <strong>How this list is ordered.</strong> priority =
         {" "}{WEIGHTS.population} × population impact (displacement pressure)
         {" "}+ {WEIGHTS.health} × health pressure
-        {" "}+ {WEIGHTS.violence} × armed-violence pressure.
+        {" "}+ {WEIGHTS.violence} × armed-violence pressure
+        {" "}+ {WEIGHTS.poverty} × poverty pressure.
         Each component is a 0–1 pressure score from the published Human Rights
         Agent position: cited, treated events only, 14-day decay, per-country
         absolute conditions. This is situation pressure, <em>not a forecast of
@@ -113,6 +117,7 @@ export default function Proposals() {
             <ComponentBar label="population impact" weight={WEIGHTS.population} value={components.population} />
             <ComponentBar label="health pressure" weight={WEIGHTS.health} value={components.health} />
             <ComponentBar label="armed-violence pressure" weight={WEIGHTS.violence} value={components.violence} />
+            <ComponentBar label="poverty pressure" weight={WEIGHTS.poverty} value={components.poverty} />
           </div>
           <div className="sol-grid">
             {set.approaches.map((a, i) => (
