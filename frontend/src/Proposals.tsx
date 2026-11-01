@@ -95,7 +95,9 @@ export default function Proposals() {
         Agent position: cited, treated events only, 14-day decay, per-country
         absolute conditions. This is situation pressure, <em>not a forecast of
         war</em> and not a ranking of countries — the platform publishes no
-        probabilities of conflict.
+        probabilities of conflict. Weights follow the published prioritization
+        policy (civilian impact first — DPG do-no-harm standard; prevention
+        first — UN New Agenda for Peace; see docs/PRIORITIZATION.md).
         {hra && <span className="hra-meta"> Position of {fmtDate(hra.created_at)} · {hra.engine}.</span>}
       </div>
       {err && <div className="err">Could not load proposals: {err}</div>}

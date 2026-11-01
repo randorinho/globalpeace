@@ -64,6 +64,17 @@ def test_vitals_cover_health_and_poverty_dimensions():
     assert "poverty_and_livelihoods" in _vitals_for({"title": "Inflation deepens poverty as wages collapse", "event_type": "protest"})
 
 
+def test_normative_anchors_reach_every_prioritizing_prompt():
+    from audit.desks import SYSTEM_BASE
+    from norms import NORMATIVE_ANCHORS
+    from solutions.engine import COMMON_RULES
+    assert NORMATIVE_ANCHORS in SYSTEM_BASE
+    assert NORMATIVE_ANCHORS in COMMON_RULES
+    for anchor in ("PREVENTION FIRST", "INFORMATION INTEGRITY",
+                   "CIVILIAN IMPACT FIRST", "MACHINES PROPOSE, HUMANS DISPOSE"):
+        assert anchor in NORMATIVE_ANCHORS
+
+
 def test_source_tiers():
     assert source_tier(["https://reliefweb.int/report/x"])[0] == "institutional"
     assert source_tier(["https://iom.int/news/x"])[0] == "institutional"

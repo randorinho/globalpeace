@@ -110,7 +110,10 @@ def assess(events: list[dict], now: datetime | None = None) -> dict:
 def immune_response(assessment: dict) -> list[dict]:
     """Prioritized diplomatic actions, highest pressure first — immediately
     computed, never automatically dispatched: urgent items carry an explicit
-    human-dispatch requirement (docs/GOVERNANCE.md, APDSI Art. 86-C)."""
+    human-dispatch requirement (docs/GOVERNANCE.md, APDSI Art. 86-C).
+    Ordering anchors (docs/PRIORITIZATION.md): civilian-impact-first (DPG
+    Standard ind. 9) via vital scores; prevention-first (A New Agenda for
+    Peace) via the preventive level below alarm."""
     actions: list[dict] = []
     for country, data in assessment.items():
         for vital, v in data["vitals"].items():

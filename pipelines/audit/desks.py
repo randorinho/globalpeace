@@ -12,6 +12,10 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from norms import NORMATIVE_ANCHORS  # noqa: E402
 
 from .continents import LENSES
 
@@ -47,7 +51,7 @@ verify figures, and only a human records verification.
 - Your output is doubt: concrete, checkable concerns. If an event raises none under \
 your lens, return an empty concerns list for it — do not manufacture doubt.
 - Never speculate about actors' intent; never rank countries.
-
+""" + NORMATIVE_ANCHORS + """
 Your analytical lens for this panel:
 """
 

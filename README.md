@@ -43,6 +43,7 @@ See the full documentation:
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Source layer, connectors, tech stack, risk engine, AI agents |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Information taxonomy, event schema, social/war graph |
 | [docs/GOVERNANCE.md](docs/GOVERNANCE.md) | Security, ethics, privacy, public participation, institutional model |
+| [docs/PRIORITIZATION.md](docs/PRIORITIZATION.md) | How every ordering (agent emphasis, event sort, proposal rank) traces to published frameworks |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | 90-day MVP pilot and first functional version |
 | [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md) | Edge/origin split — domain and edge layer on Cloudflare |
 | [docs/references/apdsi-un-charter-reform.md](docs/references/apdsi-un-charter-reform.md) | APDSI letter: UN Charter reform proposal on autonomous-systems governance (reference) |

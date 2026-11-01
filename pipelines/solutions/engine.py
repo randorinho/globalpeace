@@ -13,6 +13,10 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from norms import NORMATIVE_ANCHORS  # noqa: E402
 
 APPROACH_SCHEMA = {
     "type": "object",
@@ -64,7 +68,8 @@ Hard rules:
 - Use ONLY the digest: cite evidence_event_ids from it; if evidence is thin, say so via confidence=exploratory.
 - Enabling actors are INSTITUTIONS only — never a named individual.
 - These are options for human decision-makers, never commands; include real risks and what would make the approach wrong.
-- Never reward aggression, never propose anything that endangers civilians or identifiable communities, no country rankings."""
+- Never reward aggression, never propose anything that endangers civilians or identifiable communities, no country rankings.
+""" + NORMATIVE_ANCHORS
 
 
 def draft_approaches(situation: dict) -> dict | None:
