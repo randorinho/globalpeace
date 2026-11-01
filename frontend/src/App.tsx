@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Country from "./Country";
 import Home from "./Home";
 import { fetchContributions, fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
 import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, VerificationStatus } from "./types";
@@ -539,6 +540,7 @@ export default function App() {
   }, [theme]);
 
   const review = route === "#/review";
+  const countryMatch = /^#\/country\/([A-Za-z]{2})$/.exec(route);
 
   return (
     <div className="app">
@@ -552,7 +554,7 @@ export default function App() {
           <span className="brand">globalpeace.ai</span>
         </h1>
         <nav className="nav">
-          <a href="#/" className={review ? "" : "on"}>Map</a>
+          <a href="#/" className={review || countryMatch ? "" : "on"}>Map</a>
           <a href="#/review" className={review ? "on" : ""}>Review</a>
         </nav>
         <div className="spacer" />
@@ -560,7 +562,9 @@ export default function App() {
           {theme === "dark" ? "Light" : "Dark"}
         </button>
       </div>
-      {review ? <ReviewPage /> : <Home />}
+      {review ? <ReviewPage />
+        : countryMatch ? <Country iso2={countryMatch[1].toUpperCase()} />
+        : <Home />}
     </div>
   );
 }

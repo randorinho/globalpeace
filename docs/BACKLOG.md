@@ -55,7 +55,11 @@ The platform is live at globalpeace.ai; these make it dependable.
 - [x] **Server-side dedupe** — unique `primary_source_url` on events (alembic
       `8f3d2c41b7e9`); POST /events answers 409 on a known source URL and the
       ingester counts it as a dup. Local sqlite ledger kept as a fast pre-check.
-- [ ] **Country pages + timeline** — remaining MVP deliverables (docs/ROADMAP.md)
+- [x] **Country pages + timeline** — `#/country/<ISO2>` for every country:
+      mini-map, month-grouped timeline with lazy public verification trails,
+      HRA vitals, solutions, SIPRI transfers; linked from home cards, map
+      popups, HRA and solutions blocks. Full ISO2 centroid table (global
+      events now render on the map).
 - [ ] **Load real SIPRI export** — connector shipped; needs the portal CSV;
       UNROCA connector as second arms-data source
 - [~] Actor graph — Neo4j live with SUPPLIED edges; next: conflict parties,

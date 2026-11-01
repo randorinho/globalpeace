@@ -5,11 +5,10 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { centroidFor } from "./centroids";
+import { COUNTRY_NAMES, eventFeatures, fetchJSON, fmtDate as fmt } from "./mapdata";
 import type { GPEvent } from "./types";
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
-
-const COUNTRY_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
 
 // Conflict-pressure scale (brandbook): situation pressure on vital systems,
 // never country character. Thresholds mirror the HRA levels.
@@ -20,14 +19,6 @@ function pressureColor(p: number): string | null {
   if (p > 0.05) return "#7A8C94";  // watch
   return null;
 }
-const fmt = (iso: string) => iso.slice(0, 10);
-
-// Treatment colors — same tokens as the review dashboard badges.
-const STATUS_COLOR: Record<string, string> = {
-  verified: "#2B8C72",
-  partially_verified: "#63CDA3",
-  ai_corroborated: "#37675D", // machine sea-green: trust family, muted — never impersonates human green
-};
 
 interface Transfer {
   supplier: string;
@@ -36,59 +27,6 @@ interface Transfer {
   delivery_year?: string;
   source?: string;
   [k: string]: unknown;
-}
-
-async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-/** Deterministic jitter so same-country events spread around the centroid
- *  without implying precision we don't have. */
-function jitter(id: string): [number, number] {
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const angle = (h % 360) * (Math.PI / 180);
-  const dist = 0.4 + ((h >>> 8) % 100) / 100;
-  return [Math.cos(angle) * dist, Math.sin(angle) * dist * 0.7];
-}
-
-function impactBump(ev: GPEvent): number {
-  const total = Object.values(ev.civilian_impact ?? {}).reduce<number>(
-    (acc, v) => acc + (typeof v === "number" ? v : 0), 0);
-  return Math.min(8, Math.sqrt(total));
-}
-
-function eventFeatures(events: GPEvent[]) {
-  return {
-    type: "FeatureCollection" as const,
-    features: events.flatMap((ev) => {
-      const exact = ev.location ? [ev.location.lon, ev.location.lat] : null;
-      const centroid = centroidFor(ev.country);
-      if (!exact && !centroid) return [];
-      let coords: [number, number];
-      if (exact) coords = exact as [number, number];
-      else {
-        const [dx, dy] = jitter(ev.event_id);
-        coords = [centroid![0] + dx, centroid![1] + dy];
-      }
-      return [{
-        type: "Feature" as const,
-        geometry: { type: "Point" as const, coordinates: coords },
-        properties: {
-          title: ev.title || `${ev.event_type} · ${ev.country}`,
-          status: ev.verification_status,
-          color: STATUS_COLOR[ev.verification_status] ?? "#41484C",
-          radius: 5 + ev.confidence * 7 + impactBump(ev),
-          exact: Boolean(exact),
-          country: COUNTRY_NAMES.of(ev.country) ?? ev.country,
-          date: fmt(ev.date_time),
-          confidence: ev.confidence,
-        },
-      }];
-    }),
-  };
 }
 
 function transferFeatures(transfers: Transfer[]) {
@@ -235,7 +173,7 @@ export default function Home() {
         const p = e.features?.[0]?.properties;
         if (!p) return;
         new maplibregl.Popup().setLngLat(e.lngLat).setHTML(
-          `<strong>${p.title}</strong><br/>${p.country} · ${p.date}<br/>` +
+          `<strong>${p.title}</strong><br/><a href="#/country/${p.iso2}">${p.country}</a> · ${p.date}<br/>` +
           `status: ${String(p.status).replace(/_/g, " ")} · confidence ${Number(p.confidence).toFixed(2)}<br/>` +
           `<em>${p.exact ? "exact location from source" : "country-level placement (jittered)"}</em>`,
         ).addTo(map);
@@ -320,7 +258,8 @@ export default function Home() {
               </div>
               <span className="title">{ev.title || `${ev.event_type} · ${ev.country}`}</span>
               <span className="meta">
-                {COUNTRY_NAMES.of(ev.country) ?? ev.country} · {fmt(ev.date_time)} · confidence {ev.confidence.toFixed(2)}
+                <a className="country-link" href={`#/country/${ev.country}`}>{COUNTRY_NAMES.of(ev.country) ?? ev.country}</a>
+                {" "}· {fmt(ev.date_time)} · confidence {ev.confidence.toFixed(2)}
               </span>
               {ev.source_urls[0] && (
                 <a className="srclink" href={ev.source_urls[0]} target="_blank" rel="noreferrer">source</a>
@@ -364,7 +303,7 @@ export default function Home() {
             <div className="hra-vitals">
               {Object.entries(hra.vitals).sort((a, b) => b[1].pressure - a[1].pressure).map(([c, d]) => (
                 <div className="hra-country" key={c}>
-                  <span className="hra-cname">{COUNTRY_NAMES.of(c) ?? c}</span>
+                  <a className="hra-cname country-link" href={`#/country/${c}`}>{COUNTRY_NAMES.of(c) ?? c}</a>
                   {Object.entries(d.vitals).filter(([, v]) => v.score > 0).map(([name, v]) => (
                     <div className="hra-vital" key={name} title={`${name}: ${v.score}`}>
                       <span className="hra-vlabel">{name.replace(/_/g, " ")}</span>
@@ -403,7 +342,7 @@ export default function Home() {
           </div>
           {solutions.map((s) => (
             <div className="sol-country" key={s.country}>
-              <span className="hra-cname">{COUNTRY_NAMES.of(s.country) ?? s.country}</span>
+              <a className="hra-cname country-link" href={`#/country/${s.country}`}>{COUNTRY_NAMES.of(s.country) ?? s.country}</a>
               <div className="sol-grid">
                 {s.approaches.map((a, i) => (
                   <details className="sol-card" key={i}>

@@ -317,3 +317,30 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 
 .legend-pressure { display: inline-flex; align-items: center; gap: 6px; }
 .legend-pressure .sw { margin-left: 8px; }
+
+/* country pages */
+.country-link { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--gp-primary) 45%, transparent); text-underline-offset: 2px; }
+.country-link:hover { color: var(--gp-primary); }
+.cp-head { display: flex; flex-direction: column; gap: 4px; }
+.cp-back { font-size: 13px; color: var(--gp-ink-muted); text-decoration: none; }
+.cp-back:hover { color: var(--gp-primary); }
+.cp-stats { font: 400 13px var(--gp-font-mono); color: var(--gp-ink-muted); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.lv-t-severe { color: color-mix(in srgb, var(--gp-alert) 50%, var(--gp-ink)); }
+.lv-severe { background: color-mix(in srgb, var(--gp-alert) 70%, var(--gp-ink)); }
+
+.cp-timeline { display: flex; flex-direction: column; gap: 10px; }
+.tl-month { display: flex; flex-direction: column; gap: 8px; }
+.tl-month-label {
+  font: 500 11.5px var(--gp-font-mono); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--gp-ink-muted); border-bottom: 1px solid var(--gp-border); padding-bottom: 4px;
+}
+.tl-item { border: 1px solid var(--gp-border); border-radius: 6px; background: var(--gp-surface); padding: 9px 12px; }
+.tl-item summary { cursor: pointer; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.tl-item summary::-webkit-details-marker { display: none; }
+.tl-date { font: 400 12px var(--gp-font-mono); color: var(--gp-ink-muted); }
+.tl-title { font-weight: 500; font-size: 13.5px; flex: 1 1 60%; }
+.tl-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.tl-body .meta { font: 400 12px var(--gp-font-mono); color: var(--gp-ink-muted); }
+.tl-trail { border-top: 1px solid var(--gp-border); padding-top: 8px; }
+.tl-checks { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--gp-ink-muted); }
+.cp-transfers { display: flex; flex-direction: column; gap: 6px; }
