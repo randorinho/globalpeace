@@ -1,8 +1,10 @@
 # Digital Public Good Registration — Application Draft
 
 Submit at: https://www.digitalpublicgoods.net/submission-guide
-Prepared 2026-10-12. Paste-ready answers per DPG Standard indicator; every
-claim links to public evidence in this repository or the live platform.
+Prepared 2026-10-12; evidence refreshed 2026-11-01 (global coverage, country
+pages, prioritization policy, dedicated VPS origin). Paste-ready answers per
+DPG Standard indicator; every claim links to public evidence in this
+repository or the live platform.
 
 ---
 
@@ -34,8 +36,17 @@ Primary: **SDG 16 — Peace, Justice and Strong Institutions.**
   docs/HUMAN_RIGHTS_AGENT.md; /api/public/hra/positions.
 - 16.10 (public access to information): all verified intelligence is
   public, free, and attributed; same methodology for every country.
-Secondary: SDG 2 (famine early-warning signals), SDG 17 (data partnership
-with institutional sources: ReliefWeb, IOM, UNHCR, FEWS NET ecosystems).
+Secondary: SDG 2 (famine early-warning signals), SDG 1 and SDG 3 (poverty
+and health-system vitals monitored per country as peace pressure dimensions,
+docs/PRIORITIZATION.md), SDG 17 (data partnership with institutional
+sources: ReliefWeb, IOM, UNHCR, FEWS NET ecosystems).
+Coverage is global by design: full ISO-3166 country registry, six
+continental audit desks, per-country public pages
+(https://globalpeace.ai/#/country/SD), and a Peace Proposals section whose
+ordering is a published, component-visible formula
+(https://globalpeace.ai/#/proposals). The platform's prioritization policy
+is anchored in the Pact for the Future / Global Digital Compact and A New
+Agenda for Peace (docs/PRIORITIZATION.md, docs/references/).
 
 ## 2. Open licensing
 
