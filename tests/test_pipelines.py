@@ -56,6 +56,14 @@ def test_country_registry_is_complete_and_desked():
     assert ISO2_FROM_ISO3["COD"] == "CD" and ISO2_FROM_ISO3["SSD"] == "SS"
 
 
+def test_vitals_cover_health_and_poverty_dimensions():
+    from hra.vitals import PLAYBOOK, VITALS, _vitals_for
+    assert "health_system" in VITALS and "poverty_and_livelihoods" in VITALS
+    assert set(VITALS) == set(PLAYBOOK)  # every vital has a preventive playbook entry
+    assert "health_system" in _vitals_for({"title": "Cholera outbreak strains clinics", "event_type": "protest"})
+    assert "poverty_and_livelihoods" in _vitals_for({"title": "Inflation deepens poverty as wages collapse", "event_type": "protest"})
+
+
 def test_source_tiers():
     assert source_tier(["https://reliefweb.int/report/x"])[0] == "institutional"
     assert source_tier(["https://iom.int/news/x"])[0] == "institutional"

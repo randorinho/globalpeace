@@ -26,11 +26,16 @@ STATUS_WEIGHT = {
 }
 
 VITALS = ("civilian_safety", "population_stability", "food_security",
-          "health_system", "humanitarian_access")
+          "health_system", "humanitarian_access", "poverty_and_livelihoods")
 
 FOOD_RE = re.compile(r"famine|food insecur|lean season|soudure|harvest|r[ée]colte|hunger|prix|price", re.I)
-HEALTH_RE = re.compile(r"cholera|measles|epidemic|health|malnutrition|hospital|clinic", re.I)
+HEALTH_RE = re.compile(
+    r"cholera|measles|epidemic|outbreak|ebola|malaria|polio|vaccin|disease"
+    r"|health|malnutrition|hospital|clinic|maternal", re.I)
 ACCESS_RE = re.compile(r"access|obstruct|blockad|convoy|corridor|denial|siege", re.I)
+POVERTY_RE = re.compile(
+    r"poverty|destitut|unemploy|livelihood|inflation|currency|devaluat"
+    r"|economic (crisis|collapse|hardship)|cost of living|wages?|debt distress", re.I)
 
 THRESHOLDS = (("alarm", 0.66), ("concern", 0.33), ("watch", 0.0))
 
@@ -42,6 +47,7 @@ PLAYBOOK = {
     "food_security": "Escalate to food-security clusters (WFP/FEWS NET/Cadre Harmonisé actors); support independent market monitoring.",
     "health_system": "Alert WHO country office and health cluster; support surveillance verification and supply corridors.",
     "humanitarian_access": "Prioritize access negotiations through established mediators; document obstructions for humanitarian diplomacy.",
+    "poverty_and_livelihoods": "Engage development and livelihoods actors (UNDP, World Bank, ILO, cash working groups); support market and wage monitoring; flag economic drivers to mediation tracks.",
 }
 
 
@@ -69,6 +75,8 @@ def _vitals_for(ev: dict) -> list[str]:
         hit.append("health_system")
     if ACCESS_RE.search(text):
         hit.append("humanitarian_access")
+    if POVERTY_RE.search(text):
+        hit.append("poverty_and_livelihoods")
     return hit or ["civilian_safety"] if ev.get("event_type") == "attack" else hit
 
 

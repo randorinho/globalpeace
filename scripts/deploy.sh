@@ -16,7 +16,13 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 echo "→ origin: rebuild API + ensure tunnel"
-docker compose -f infra/docker-compose.yml --profile tunnel up -d --build api cloudflared
+if [[ -f infra/.vps_ip ]]; then
+  # origin lives on the VPS (scripts/migrate_origin.sh): pull main, rebuild there
+  VPS_IP=$(cat infra/.vps_ip)
+  ssh root@"$VPS_IP" "cd /opt/gpai && git pull -q && docker compose -f infra/docker-compose.yml --profile tunnel up -d --build api cloudflared"
+else
+  docker compose -f infra/docker-compose.yml --profile tunnel up -d --build api cloudflared
+fi
 
 echo "→ frontend: build static assets"
 (cd frontend && npm ci --no-fund --no-audit >/dev/null 2>&1 || npm install --no-fund --no-audit >/dev/null; npm run build)
@@ -25,8 +31,13 @@ echo "→ edge: typecheck + deploy Worker"
 (cd edge/gateway && npx tsc --noEmit && npx wrangler deploy)
 
 echo "→ verify"
-for i in $(seq 1 30); do curl -sf http://localhost:8000/readyz >/dev/null && break; sleep 1; done
-curl -sf http://localhost:8000/readyz >/dev/null            && echo "  ✓ origin ready"
+if [[ -f infra/.vps_ip ]]; then
+  ready() { ssh root@"$(cat infra/.vps_ip)" "curl -sf http://localhost:8000/readyz" >/dev/null; }
+else
+  ready() { curl -sf http://localhost:8000/readyz >/dev/null; }
+fi
+for i in $(seq 1 30); do ready && break; sleep 1; done
+ready                                                       && echo "  ✓ origin ready"
 curl -sf --max-time 20 https://globalpeace.ai/api/edge-healthz >/dev/null \
                                                              && echo "  ✓ edge healthy"
 curl -sf --max-time 30 https://globalpeace.ai/api/public/events >/dev/null \
