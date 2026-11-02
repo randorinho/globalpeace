@@ -1,10 +1,12 @@
-# Digital Public Good Registration — Application Draft
+# Digital Public Good Registration — Application
 
-Submit at: https://www.digitalpublicgoods.net/submission-guide
-Prepared 2026-10-12; evidence refreshed 2026-11-01 (global coverage, country
-pages, prioritization policy, dedicated VPS origin). Paste-ready answers per
-DPG Standard indicator; every claim links to public evidence in this
-repository or the live platform.
+**SUBMITTED 2026-11-02 17:59 UTC — ID GID0094392 — status: UNDER REVIEW.**
+(Created 2026-10-12; evidence refreshed 2026-11-01: global coverage, country
+pages, prioritization policy, dedicated VPS origin. Final submission also
+included: privacy & legal page, code of conduct, ownership statement,
+PII/content/harassment indicator answers per the live form.)
+
+The text below is the submitted substance; per-indicator answers as filed.
 
 ---
 
