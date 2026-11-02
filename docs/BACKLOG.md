@@ -32,7 +32,10 @@ The platform is live at globalpeace.ai; these make it dependable.
       configured on the VPS (needs an R2 API token — action: Ricardo).
       Note: the actor graph is empty until the SIPRI portal CSV is loaded
       (P1) — the 0-byte neo4j exports are accurate, nothing was lost.
-- [ ] **Monitoring** — uptime checks on edge + origin health; alert on tunnel drop
+- [x] **Monitoring** — GitHub Actions uptime probe every 15 min
+      (.github/workflows/uptime.yml): edge health, origin through tunnel
+      (catches tunnel drop), public feed end-to-end, security boundary (origin
+      must 403 without secret). Workflow failure emails the repo owner.
 - [x] Workers gateway + Tunnel live; origin secret-gated; public allowlist at edge
 
 ## P1 — Intelligence depth

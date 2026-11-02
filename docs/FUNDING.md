@@ -28,7 +28,7 @@ stage can show that.
 | Step | Why | Status |
 |---|---|---|
 | **Open license on the repo** | Prerequisite for everything below (DPG standard requires an approved open license; most grants require OSI license) | ☑ AGPL-3.0 (2026-10-12) |
-| **Fiscal host: Open Collective Europe** | Belgian nonprofit umbrella: receive donations, grants and public subsidies with no legal entity of our own; ~8–10% fee; full ledger transparency matches our principles | ☑ application drafted (docs/applications/open-collective-europe.md) — submit |
+| **Fiscal host: Open Source Europe (Open Collective)** | European host for open-source projects, 8% fee, EUR; full ledger transparency matches our principles | ☑ **SUBMITTED 2026-11-02** (typeform + platform application; collective: globalpeace.ai) |
 | **Digital Public Good registration** (digitalpublicgoods.net) | SDG 16 (peace, justice, strong institutions) fit is direct; DPG status is the credibility key to the UN/multilateral ecosystem | ☑ **SUBMITTED 2026-11-02, ID GID0094392, under review** |
 | **GitHub Sponsors + Open Collective page** | Small recurring community funding; signals traction to grantmakers | ☐ |
 | **Cloud credits** (Microsoft AI for Humanitarian Action, Google.org, AWS) | Covers VPS/inference costs pre-grant | ☑ drafts + sequencing (docs/applications/cloud-credits.md) — submit |
