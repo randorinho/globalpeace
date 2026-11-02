@@ -77,7 +77,7 @@ async def public_events_geojson(
                 "information_type": str(out.information_type.value),
                 "verification_status": str(out.verification_status.value),
                 "confidence": out.confidence,
-                "source_urls": list(out.source_urls),
+                "source_urls": [str(u) for u in out.source_urls],
                 "source_language": out.source_language,
                 "exact_location": out.location is not None,
             },
@@ -118,7 +118,7 @@ async def public_events_csv(
             str(out.verification_status.value), out.confidence,
             out.location.lat if out.location else "",
             out.location.lon if out.location else "",
-            out.title, "|".join(out.source_urls), out.source_language,
+            out.title, "|".join(str(u) for u in out.source_urls), out.source_language,
         ])
     return PlainTextResponse(
         buf.getvalue(),
