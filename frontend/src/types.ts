@@ -1,6 +1,6 @@
 export type VerificationStatus =
   | "unverified" | "ai_corroborated" | "partially_verified" | "verified" | "disputed" | "retracted";
-export type EventType = "protest" | "attack" | "negotiation" | "displacement";
+export type EventType = "protest" | "attack" | "negotiation" | "displacement" | "humanitarian_crisis";
 
 export interface AIAudit {
   verdict: "credible_recent" | "needs_additional_verification" | "stale_low_priority";

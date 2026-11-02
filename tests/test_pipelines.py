@@ -26,6 +26,11 @@ def test_classifier_maps_types_and_never_guesses():
     assert classify("Ceasefire talks resume") == "negotiation"
     assert classify("Airstrike hits market town") == "attack"
     assert classify("Annual fisheries report") is None  # unmatched -> skipped, never guessed
+    # slow-onset harm gets its own type — and acute types still win over it
+    assert classify("Hunger deepens for millions amid conflict") == "humanitarian_crisis"
+    assert classify("Ebola outbreak spreads to eighth province") == "humanitarian_crisis"
+    assert classify("Inflation and unemployment drive economic hardship") == "humanitarian_crisis"
+    assert classify("Famine-stricken town hit by airstrike") == "attack"
 
 
 def test_country_matching_global_registry():

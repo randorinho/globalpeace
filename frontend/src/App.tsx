@@ -11,7 +11,7 @@ const STATUSES: VerificationStatus[] = ["verified", "partially_verified", "dispu
 
 const LENS_RE = /^\[([a-z_]+)\]\s*/;
 const COUNTRY_NAMES = new Intl.DisplayNames(["en"], { type: "region" });
-const TYPES: EventType[] = ["protest", "attack", "negotiation", "displacement"];
+const TYPES: EventType[] = ["protest", "attack", "negotiation", "displacement", "humanitarian_crisis"];
 
 const fmt = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC";
 const domain = (url: string) => { try { return new URL(url).hostname; } catch { return url; } };

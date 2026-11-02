@@ -21,7 +21,7 @@ The system must clearly distinguish **five types of information**:
   "location": "geographic coordinates",
   "country": "country code",
   "actors": [],
-  "event_type": "protest|attack|negotiation|displacement",
+  "event_type": "protest|attack|negotiation|displacement|humanitarian_crisis",
   "source_urls": [],
   "source_language": "en",
   "confidence": 0.78,

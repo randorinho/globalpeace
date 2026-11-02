@@ -22,6 +22,14 @@ RULES: list[tuple[str, list[str]]] = [
     ("protest", [
         r"\bprotest", r"\bdemonstrat", r"\brally\b", r"\briot", r"\bgeneral strike\b",
     ]),
+    # Slow-onset humanitarian harm — checked LAST so acute types win when both
+    # appear in one title. Feeds the food/health/poverty vitals (hra/vitals.py).
+    ("humanitarian_crisis", [
+        r"\bfamine\b", r"\bhunger\b", r"\bfood insecur", r"\bmalnutrition\b", r"\bstarvation\b",
+        r"\bepidemic\b", r"\boutbreak\b", r"\bcholera\b", r"\bebola\b", r"\bmeasles\b",
+        r"\bpoverty\b", r"\bdestitut", r"\blivelihoods?\b", r"\bunemploy",
+        r"\binflation\b", r"\beconomic (crisis|collapse|hardship)\b", r"\billicit econom",
+    ]),
 ]
 
 _COMPILED = [(etype, [re.compile(p, re.I) for p in pats]) for etype, pats in RULES]

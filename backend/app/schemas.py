@@ -24,6 +24,9 @@ class EventType(str, Enum):
     ATTACK = "attack"
     NEGOTIATION = "negotiation"
     DISPLACEMENT = "displacement"
+    # slow-onset harm: famine, epidemics, livelihood/economic collapse —
+    # feeds the food, health and poverty vitals (docs/PRIORITIZATION.md)
+    HUMANITARIAN_CRISIS = "humanitarian_crisis"
 
 
 class VerificationStatus(str, Enum):
