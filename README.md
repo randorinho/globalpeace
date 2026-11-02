@@ -50,6 +50,7 @@ See the full documentation:
 | [docs/references/un-peace-and-digital-framework.md](docs/references/un-peace-and-digital-framework.md) | UN anchors: Pact for the Future (A/RES/79/1), New Agenda for Peace, Global Digital Compact |
 | [docs/references/dpg-alliance.md](docs/references/dpg-alliance.md) | Digital Public Goods Alliance and the 9-indicator DPG Standard this platform registers under |
 | [docs/references/internet-society.md](docs/references/internet-society.md) | Internet Society: the open Internet as peace infrastructure; shutdown data as a future signal |
+| [docs/references/clube-lisboa-mne-brief.md](docs/references/clube-lisboa-mne-brief.md) | Clube de Lisboa × MNE round-table brief: Charter erosion, unregulated new warfare, Portugal's UNSC posture |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | Internal backlog — P0 operational trust → P2 Solutions Engine → DevEx |
 | [docs/REVIEW_SECURITY_POLICY.md](docs/REVIEW_SECURITY_POLICY.md) | DRAFT — controls required before human-review expansion; interim AI-corroboration regime |
 | [docs/HUMAN_RIGHTS_AGENT.md](docs/HUMAN_RIGHTS_AGENT.md) | Independent HRA: vitals immune system, development auditor, published position |
