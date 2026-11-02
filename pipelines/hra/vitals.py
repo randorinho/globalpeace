@@ -35,7 +35,8 @@ HEALTH_RE = re.compile(
 ACCESS_RE = re.compile(r"access|obstruct|blockad|convoy|corridor|denial|siege", re.I)
 POVERTY_RE = re.compile(
     r"poverty|destitut|unemploy|livelihood|inflation|currency|devaluat"
-    r"|economic (crisis|collapse|hardship)|cost of living|wages?|debt distress", re.I)
+    r"|economic (crisis|collapse|hardship)|illicit econom|cost of living|wages?|debt distress"
+    r"|pauvret[ée]|ch[ôo]mage|moyens de subsistance|crise [ée]conomique", re.I)
 
 THRESHOLDS = (("alarm", 0.66), ("concern", 0.33), ("watch", 0.0))
 
