@@ -363,3 +363,8 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 .prio-clabel { font-size: 12.5px; color: var(--gp-ink-muted); }
 .prio-clabel em { font-style: normal; font-family: var(--gp-font-mono); font-size: 11px; }
 .prio-cval { font: 400 12px var(--gp-font-mono); color: var(--gp-ink-muted); text-align: right; }
+
+/* funding page */
+.funding-none { font-size: 14px; max-width: 720px; margin: 0; }
+.funding-none a { color: var(--gp-primary); }
+.funding-card p { margin: 8px 0 0; font-size: 13px; color: var(--gp-ink-muted); }

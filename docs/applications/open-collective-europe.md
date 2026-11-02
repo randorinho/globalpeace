@@ -1,0 +1,57 @@
+# Open Collective Europe — Fiscal Host Application Draft
+
+Apply at: https://opencollective.com/europe (→ Apply / Submit your collective)
+Prepared 2026-11-02. Paste-ready answers; adjust to the live form's wording.
+Goal: receive donations, grants and public subsidies under OCE's Belgian
+non-profit umbrella, with a fully public ledger, before our own legal entity
+exists (docs/FUNDING.md, Phase 0).
+
+---
+
+**Collective name**: globalpeace.ai
+
+**One-line description**: An open, global peace-intelligence platform:
+verified conflict events with public verification trails, country vital-signs
+monitoring, and machine-drafted, human-dispatched options for peace.
+
+**Website / repository**:
+https://globalpeace.ai · https://github.com/randorinho/globalpeace
+
+**What does your collective do?**
+We operate a live, open-source (AGPL-3.0) platform that ingests
+conflict-related reporting from institutional sources (UN News, ReliefWeb,
+IOM; SIPRI arms-transfer records), audits every claim with transparent rules
+plus multi-agent AI analysis under mandatory human accountability, and
+publishes: a world map of verified events, per-country pages with full
+verification trails, an independent Human Rights Agent's positions, and a
+"Peace Proposals" section whose prioritization formula is public
+(docs/PRIORITIZATION.md). Everything published is free, attributed, and
+available through open JSON APIs. The platform is anchored in the UN's Pact
+for the Future / Global Digital Compact and A New Agenda for Peace, and a
+Digital Public Good registration is in progress.
+
+**Why do you need a fiscal host?**
+We are a Portuguese-led civic-technology project without a legal entity yet.
+OCE lets us receive grants and donations transparently now — our funding
+policy (published at https://globalpeace.ai/#/funding) commits to a public
+ledger for every contribution, which Open Collective provides natively. A
+Portuguese non-profit association is planned once first institutional grants
+land; OCE remains our community-funding channel after that.
+
+**What will you spend money on?**
+1. Operational base: hosting (currently a single EU VPS, ~€20/month),
+   backups, monitoring, security audits.
+2. AI inference costs for the audit desks and solutions agents.
+3. Verification depth: integrations with ACLED, UNHCR, UCDP; geolocation;
+   multilingual coverage.
+4. Governance: external audits and methodology publication.
+
+**Team**: Ricardo Andorinho (maintainer) — randorinho@mbuintelligence.com.
+Contributions governed by CONTRIBUTING.md (DCO sign-off required).
+
+**Funding policy (please read — it binds us)**:
+- No single funder above 30% of annual budget past seed stage.
+- No funding from parties to conflicts we track, arms producers/brokers, or
+  any source conditioning editorial outcomes.
+- Every grant and donation published (amount, source, purpose).
+- Public-good lock: AGPL-3.0; funding never finances a proprietary fork.

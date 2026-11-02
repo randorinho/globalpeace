@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Country from "./Country";
+import Funding from "./Funding";
 import Home from "./Home";
 import Proposals from "./Proposals";
 import { fetchContributions, fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
@@ -542,6 +543,7 @@ export default function App() {
 
   const review = route === "#/review";
   const proposals = route === "#/proposals";
+  const funding = route === "#/funding";
   const countryMatch = /^#\/country\/([A-Za-z]{2})$/.exec(route);
 
   return (
@@ -556,8 +558,9 @@ export default function App() {
           <span className="brand">globalpeace.ai</span>
         </h1>
         <nav className="nav">
-          <a href="#/" className={review || proposals || countryMatch ? "" : "on"}>Map</a>
+          <a href="#/" className={review || proposals || funding || countryMatch ? "" : "on"}>Map</a>
           <a href="#/proposals" className={proposals ? "on" : ""}>Proposals</a>
+          <a href="#/funding" className={funding ? "on" : ""}>Funding</a>
           <a href="#/review" className={review ? "on" : ""}>Review</a>
         </nav>
         <div className="spacer" />
@@ -567,6 +570,7 @@ export default function App() {
       </div>
       {review ? <ReviewPage />
         : proposals ? <Proposals />
+        : funding ? <Funding />
         : countryMatch ? <Country iso2={countryMatch[1].toUpperCase()} />
         : <Home />}
     </div>
