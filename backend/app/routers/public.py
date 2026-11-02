@@ -33,14 +33,97 @@ async def public_events(
     limit: int = Query(default=500, le=2000),
     session: AsyncSession = Depends(get_session),
 ):
+    rows = await _published(limit, session)
+    return [_to_out(e) for e in rows]
+
+
+async def _published(limit: int, session: AsyncSession) -> list[Event]:
     q = (
         select(Event)
         .where(Event.verification_status.in_(PUBLIC_STATUSES))
         .order_by(Event.date_time.desc())
         .limit(limit)
     )
-    rows = (await session.execute(q)).scalars().all()
-    return [_to_out(e) for e in rows]
+    return list((await session.execute(q)).scalars().all())
+
+
+@router.get("/events.geojson")
+async def public_events_geojson(
+    limit: int = Query(default=2000, le=5000),
+    session: AsyncSession = Depends(get_session),
+):
+    """Published events as a GeoJSON FeatureCollection (RFC 7946). Events
+    without an exact source location carry geometry null plus the ISO2
+    country property — consumers choose their own country-level placement
+    rather than inheriting false precision."""
+    from fastapi.responses import JSONResponse
+
+    features = []
+    for e in await _published(limit, session):
+        out = _to_out(e)
+        geometry = (
+            {"type": "Point", "coordinates": [out.location.lon, out.location.lat]}
+            if out.location else None
+        )
+        features.append({
+            "type": "Feature",
+            "id": out.event_id,
+            "geometry": geometry,
+            "properties": {
+                "title": out.title,
+                "date_time": out.date_time.isoformat(),
+                "country": out.country,
+                "event_type": out.event_type,
+                "information_type": out.information_type,
+                "verification_status": out.verification_status,
+                "confidence": out.confidence,
+                "source_urls": out.source_urls,
+                "source_language": out.source_language,
+                "exact_location": out.location is not None,
+            },
+        })
+    return JSONResponse(
+        {
+            "type": "FeatureCollection",
+            "features": features,
+            "attribution": "globalpeace.ai — verified conflict events with source attribution (AGPL-3.0 platform; records cite their original publishers)",
+        },
+        media_type="application/geo+json",
+    )
+
+
+@router.get("/events.csv")
+async def public_events_csv(
+    limit: int = Query(default=2000, le=5000),
+    session: AsyncSession = Depends(get_session),
+):
+    """Published events as CSV — flat, spreadsheet-ready export."""
+    import csv
+    import io
+
+    from fastapi.responses import PlainTextResponse
+
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow([
+        "event_id", "date_time", "country", "event_type", "information_type",
+        "verification_status", "confidence", "lat", "lon", "title",
+        "source_urls", "source_language",
+    ])
+    for e in await _published(limit, session):
+        out = _to_out(e)
+        w.writerow([
+            out.event_id, out.date_time.isoformat(), out.country, out.event_type,
+            out.information_type, out.verification_status, out.confidence,
+            out.location.lat if out.location else "",
+            out.location.lon if out.location else "",
+            out.title, "|".join(out.source_urls), out.source_language,
+        ])
+    return PlainTextResponse(
+        buf.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"content-disposition": 'attachment; filename="globalpeace-events.csv"'},
+    )
 
 
 @router.get("/arms-transfers")

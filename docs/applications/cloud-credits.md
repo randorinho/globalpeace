@@ -1,4 +1,4 @@
-# Cloud & AI Credit Programs — Application Drafts
+GIve me the exact wteps # Cloud & AI Credit Programs — Application Drafts
 
 Prepared 2026-11-02. Common core + per-program notes. These cover
 infrastructure and inference costs pre-grant (docs/FUNDING.md, Phase 0).
