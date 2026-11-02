@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Country from "./Country";
 import Funding from "./Funding";
 import Home from "./Home";
+import Privacy from "./Privacy";
 import Proposals from "./Proposals";
 import { fetchContributions, fetchEvidence, fetchHistory, fetchQueue, postEvidence, postReview } from "./api";
 import type { EventType, EvidenceItem, EvidenceSummary, GPEvent, ReviewRecord, VerificationStatus } from "./types";
@@ -571,8 +572,15 @@ export default function App() {
       {review ? <ReviewPage />
         : proposals ? <Proposals />
         : funding ? <Funding />
+        : route === "#/privacy" ? <Privacy />
         : countryMatch ? <Country iso2={countryMatch[1].toUpperCase()} />
         : <Home />}
+      <footer className="site-footer">
+        <span>© 2026 Ricardo Andorinho · AGPL-3.0 ·</span>
+        <a href="#/privacy">Privacy &amp; legal</a>
+        <a href="https://github.com/randorinho/globalpeace" target="_blank" rel="noreferrer">Source</a>
+        <a href="#/funding">Funding</a>
+      </footer>
     </div>
   );
 }
