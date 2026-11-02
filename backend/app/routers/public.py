@@ -73,11 +73,11 @@ async def public_events_geojson(
                 "title": out.title,
                 "date_time": out.date_time.isoformat(),
                 "country": out.country,
-                "event_type": out.event_type,
-                "information_type": out.information_type,
-                "verification_status": out.verification_status,
+                "event_type": str(out.event_type.value),
+                "information_type": str(out.information_type.value),
+                "verification_status": str(out.verification_status.value),
                 "confidence": out.confidence,
-                "source_urls": out.source_urls,
+                "source_urls": list(out.source_urls),
                 "source_language": out.source_language,
                 "exact_location": out.location is not None,
             },
@@ -113,8 +113,9 @@ async def public_events_csv(
     for e in await _published(limit, session):
         out = _to_out(e)
         w.writerow([
-            out.event_id, out.date_time.isoformat(), out.country, out.event_type,
-            out.information_type, out.verification_status, out.confidence,
+            out.event_id, out.date_time.isoformat(), out.country,
+            str(out.event_type.value), str(out.information_type.value),
+            str(out.verification_status.value), out.confidence,
             out.location.lat if out.location else "",
             out.location.lon if out.location else "",
             out.title, "|".join(out.source_urls), out.source_language,
