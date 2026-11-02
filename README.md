@@ -76,3 +76,18 @@ open. A peace commons cannot be captured into a closed service.
 ## Core safety rule
 
 > If information could endanger a person, the platform must not publish it automatically — even when the information is accurate.
+
+## Ownership and license
+
+Copyright © 2026 Ricardo Andorinho.
+
+globalpeace.ai — its code, documentation, and original published content —
+is owned by its maintainer, **Ricardo Andorinho**, and released as free
+software under the [GNU AGPL-3.0](LICENSE). Contributions enter under the
+same license with a DCO sign-off ([CONTRIBUTING.md](CONTRIBUTING.md)).
+Source data remains the property of its originating publishers (ReliefWeb,
+IOM, SIPRI, UN News, etc.) and is republished with attribution per their
+terms; every public record carries its source attribution. The project's
+[funding model](docs/FUNDING.md) commits to transferring institutional
+ownership to a Portuguese non-profit association as the project scales —
+with the public-good lock (open source, no proprietary fork) intact.
