@@ -6,7 +6,9 @@ Criteria (docs/AUDIT_CRITERIA.md, incl. HRA self-audit findings):
   vetted source with >=2 independent corroborating publishers;
 - fail-closed: the analyst panel must have actually run, with zero consensus
   objections;
-- exposure gate: named actors or exact coordinates require a human;
+- exposure gate: named actors or exact coordinates require a human. A located
+  event passes only when its precision is explicitly "city" (coarse gazetteer
+  placement); exact or unstated precision always requires a human;
 - only ever from `unverified` — human decisions are untouchable.
 """
 
@@ -21,6 +23,8 @@ def promotable(sig: dict, op: dict | None, ev: dict) -> bool:
         return False
     if not op or not op.get("panelists") or op.get("consensus_count", 0) > 0:
         return False
-    if ev.get("actors") or ev.get("location") is not None:
+    if ev.get("actors"):
+        return False
+    if ev.get("location") is not None and ev.get("location_precision") != "city":
         return False
     return ev.get("verification_status") == "unverified"

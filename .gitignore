@@ -30,3 +30,4 @@ infra/.env
 infra/cloudflared/*.json
 pipelines/data/
 infra/.vps_ip
+pipelines/data/geonames/

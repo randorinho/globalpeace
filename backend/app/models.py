@@ -22,6 +22,9 @@ class Event(Base):
     title: Mapped[str] = mapped_column(String(500), default="")
     date_time: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     geom = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=True)
+    # "exact" (from the source) or "city" (gazetteer, coarse); NULL when no geom.
+    # A geom with NULL precision is treated as exact — fail-closed exposure gate.
+    location_precision: Mapped[str | None] = mapped_column(String(12), nullable=True)
     country: Mapped[str] = mapped_column(String(2), index=True)
     actors: Mapped[list] = mapped_column(JSON, default=list)
     event_type: Mapped[EventType] = mapped_column(String, index=True)

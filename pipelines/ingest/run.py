@@ -14,6 +14,7 @@ import sys
 from .classify import classify, match_country
 from .connectors import CONNECTORS
 from .dedupe import SeenLedger
+from .geolocate import locate
 from .registry import load_registry
 from .sink import post_event
 
@@ -36,12 +37,14 @@ def run_source(cfg, ledger, dry_run: bool) -> dict:
             print(f"  skip (no event type):    {item.title[:80]}", file=sys.stderr)
             continue
         item.country = country
+        location = locate(f"{item.title} {item.summary}", country)
         if dry_run:
-            print(f"  would post [{event_type}/{country}]: {item.title[:80]}")
+            where = f" @({location[0]:.2f},{location[1]:.2f})" if location else ""
+            print(f"  would post [{event_type}/{country}]{where}: {item.title[:80]}")
             stats["posted"] += 1
             continue
         try:
-            ev = post_event(item, event_type, cfg.confidence)
+            ev = post_event(item, event_type, cfg.confidence, location=location)
             ledger.mark(item.url, item.title)
             if ev is None:  # origin already has this source URL (server-side dedupe)
                 stats["dup"] += 1

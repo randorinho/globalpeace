@@ -25,6 +25,7 @@ def _to_out(ev: Event) -> EventOut:
         ai_audit=ev.ai_audit,
         date_time=ev.date_time,
         location=loc,
+        location_precision=ev.location_precision,
         country=ev.country,
         actors=ev.actors,
         event_type=ev.event_type,
@@ -57,6 +58,8 @@ async def create_event(body: EventCreate, session: AsyncSession = Depends(get_se
     )
     if body.location:
         ev.geom = from_shape(Point(body.location.lon, body.location.lat), srid=4326)
+        # unspecified precision on a located event = exact (fail-closed)
+        ev.location_precision = (body.location_precision or "exact")
     session.add(ev)
     try:
         await session.commit()

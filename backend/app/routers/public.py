@@ -79,7 +79,8 @@ async def public_events_geojson(
                 "confidence": out.confidence,
                 "source_urls": [str(u) for u in out.source_urls],
                 "source_language": out.source_language,
-                "exact_location": out.location is not None,
+                "location_precision": str(out.location_precision.value) if out.location_precision else None,
+                "exact_location": out.location_precision == "exact",
             },
         })
     return JSONResponse(

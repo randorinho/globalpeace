@@ -130,7 +130,7 @@ export default function Country({ iso2 }: { iso2: string }) {
         if (!p) return;
         new maplibregl.Popup().setLngLat(e.lngLat).setHTML(
           `<strong>${p.title}</strong><br/>${p.date} · status: ${String(p.status).replace(/_/g, " ")}<br/>` +
-          `<em>${p.exact ? "exact location from source" : "country-level placement (jittered)"}</em>`,
+          `<em>${p.precision === "exact" ? "exact location from source" : p.precision === "city" ? "city-level placement (gazetteer)" : "country-level placement (jittered)"}</em>`,
         ).addTo(map);
       });
       map.on("mouseenter", "event-circles", () => { map.getCanvas().style.cursor = "pointer"; });

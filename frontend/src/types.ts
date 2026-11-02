@@ -42,6 +42,7 @@ export interface GPEvent {
   ai_audit: AIAudit | null;
   date_time: string;
   location: { lat: number; lon: number } | null;
+  location_precision: "exact" | "city" | null;
   country: string;
   actors: string[];
   event_type: EventType;

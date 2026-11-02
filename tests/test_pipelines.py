@@ -85,6 +85,26 @@ def test_normative_anchors_reach_every_prioritizing_prompt():
         assert anchor in NORMATIVE_ANCHORS
 
 
+def test_geolocate_city_scoped_to_country(tmp_path, monkeypatch):
+    import ingest.geolocate as g
+    def row(name, lat, lon, cc, pop):
+        f = ["1", name, name, "", lat, lon, "P", "PPL", cc, "", "", "", "", "", pop, "", "", "", ""]
+        return "\t".join(f)
+    fx = tmp_path / "cities.txt"
+    fx.write_text("\n".join([
+        row("El Fasher", "13.62", "25.35", "SD", "252000"),
+        row("Nyala", "12.04", "24.88", "SD", "565000"),
+        row("Santa Cruz", "-17.78", "-63.18", "BO", "1364000"),
+    ]), encoding="utf-8")
+    monkeypatch.setattr(g, "GAZETTEER", fx)
+    monkeypatch.setattr(g, "_INDEX", None)
+    assert g.locate("Fighting near El Fasher displaces thousands", "SD") == (13.62, 25.35)
+    assert g.locate("Aid reaches Nyala after weeks of siege", "SD") == (12.04, 24.88)
+    # a city name from another country never matches — scoping beats popularity
+    assert g.locate("Rally held in Santa Cruz", "SD") is None
+    assert g.locate("No city named in this title", "SD") is None
+
+
 def test_source_tiers():
     assert source_tier(["https://reliefweb.int/report/x"])[0] == "institutional"
     assert source_tier(["https://iom.int/news/x"])[0] == "institutional"
@@ -138,9 +158,12 @@ def test_promotion_gate_invariants():
     # fail-closed: no panel -> no promotion
     assert not promotable(base_sig, None, clean)
     assert not promotable(base_sig, {"panelists": 0}, clean)
-    # exposure gate: actors or exact location -> human required
+    # exposure gate: actors or exact/unstated-precision location -> human required
     assert not promotable(base_sig, panel, {**clean, "actors": ["Commander X"]})
     assert not promotable(base_sig, panel, {**clean, "location": {"lat": 1, "lon": 2}})
+    assert not promotable(base_sig, panel, {**clean, "location": {"lat": 1, "lon": 2}, "location_precision": "exact"})
+    # coarse city placement from the public gazetteer is machine-publishable
+    assert promotable(base_sig, panel, {**clean, "location": {"lat": 1, "lon": 2}, "location_precision": "city"})
     # human decisions untouchable
     assert not promotable(base_sig, panel, {**clean, "verification_status": "retracted"})
     # coverage parity: ratified vetted source eligible only with >=2 publishers

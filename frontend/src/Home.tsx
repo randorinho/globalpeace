@@ -175,7 +175,7 @@ export default function Home() {
         new maplibregl.Popup().setLngLat(e.lngLat).setHTML(
           `<strong>${p.title}</strong><br/><a href="#/country/${p.iso2}">${p.country}</a> · ${p.date}<br/>` +
           `status: ${String(p.status).replace(/_/g, " ")} · confidence ${Number(p.confidence).toFixed(2)}<br/>` +
-          `<em>${p.exact ? "exact location from source" : "country-level placement (jittered)"}</em>`,
+          `<em>${p.precision === "exact" ? "exact location from source" : p.precision === "city" ? "city-level placement (gazetteer)" : "country-level placement (jittered)"}</em>`,
         ).addTo(map);
       });
       map.on("click", "transfer-lines", (e: maplibregl.MapLayerMouseEvent) => {

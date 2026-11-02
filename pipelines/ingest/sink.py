@@ -11,9 +11,14 @@ from common import API_URL, api_headers  # noqa: E402
 from .items import RawItem
 
 
-def post_event(item: RawItem, event_type: str, confidence: float) -> dict | None:
+def post_event(
+    item: RawItem, event_type: str, confidence: float,
+    location: tuple[float, float] | None = None,
+) -> dict | None:
     """Post one claim; returns the created event, or None when the origin
-    already holds this source URL (server-side dedupe, HTTP 409)."""
+    already holds this source URL (server-side dedupe, HTTP 409).
+    `location` is always city-precision (gazetteer) — exact coordinates never
+    come from this pipeline."""
     payload = {
         "title": item.title[:500],
         "date_time": item.published.isoformat(),
@@ -26,6 +31,9 @@ def post_event(item: RawItem, event_type: str, confidence: float) -> dict | None
         "actors": [],
         "civilian_impact": {},
     }
+    if location:
+        payload["location"] = {"lat": location[0], "lon": location[1]}
+        payload["location_precision"] = "city"
     resp = httpx.post(f"{API_URL}/events", json=payload, headers=api_headers(), timeout=30)
     if resp.status_code == 409:
         return None

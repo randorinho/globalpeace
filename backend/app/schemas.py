@@ -43,12 +43,23 @@ class Location(BaseModel):
     lon: float = Field(ge=-180, le=180)
 
 
+class LocationPrecision(str, Enum):
+    """How precise a stored location is. Drives the exposure gate: machine
+    promotion allows CITY (coarse, public gazetteer), never EXACT — exact
+    coordinates always require a human (docs/GOVERNANCE.md)."""
+    EXACT = "exact"   # from the source itself
+    CITY = "city"     # gazetteer match on a populated place (coarse)
+
+
 class EventBase(BaseModel):
     # Source-published headline. Only ever a title that the source itself made
     # public — never a generated summary that could name or expose people.
     title: str = Field(default="", max_length=500)
     date_time: datetime
     location: Location | None = None
+    # None when location is None; a location without a stated precision is
+    # treated as EXACT (fail-closed for the exposure gate).
+    location_precision: LocationPrecision | None = None
     country: str = Field(min_length=2, max_length=2, description="ISO 3166-1 alpha-2")
     actors: list[str] = []
     event_type: EventType

@@ -42,6 +42,7 @@ export function eventFeatures(events: GPEvent[]) {
         const [dx, dy] = jitter(ev.event_id);
         coords = [centroid![0] + dx, centroid![1] + dy];
       }
+      const precision = exact ? (ev.location_precision ?? "exact") : "country";
       return [{
         type: "Feature" as const,
         geometry: { type: "Point" as const, coordinates: coords },
@@ -50,7 +51,8 @@ export function eventFeatures(events: GPEvent[]) {
           status: ev.verification_status,
           color: STATUS_COLOR[ev.verification_status] ?? "#41484C",
           radius: 5 + ev.confidence * 7 + impactBump(ev),
-          exact: Boolean(exact),
+          exact: precision === "exact",
+          precision,
           iso2: ev.country,
           country: COUNTRY_NAMES.of(ev.country) ?? ev.country,
           date: fmtDate(ev.date_time),
