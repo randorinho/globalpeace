@@ -26,7 +26,12 @@ The platform is live at globalpeace.ai; these make it dependable.
 - [ ] **Cloudflare Access on review APIs** — reviewer login via Access,
       identity from `cf-access-authenticated-user-email`; then open
       `/api/review/*` at the edge for remote reviewers
-- [ ] **Backups** — nightly `pg_dump` + Neo4j dump, copies to R2
+- [~] **Backups** — nightly systemd timer live on the VPS (03:30 UTC,
+      `pg_dump` + Neo4j export, 14-day local retention, first run verified
+      2026-11-02). Off-site to R2 activates when an rclone remote `r2` is
+      configured on the VPS (needs an R2 API token — action: Ricardo).
+      Note: the actor graph is empty until the SIPRI portal CSV is loaded
+      (P1) — the 0-byte neo4j exports are accurate, nothing was lost.
 - [ ] **Monitoring** — uptime checks on edge + origin health; alert on tunnel drop
 - [x] Workers gateway + Tunnel live; origin secret-gated; public allowlist at edge
 
