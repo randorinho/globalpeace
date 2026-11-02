@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import About from "./About";
 import Country from "./Country";
 import Funding from "./Funding";
 import Home from "./Home";
@@ -545,6 +546,7 @@ export default function App() {
   const review = route === "#/review";
   const proposals = route === "#/proposals";
   const funding = route === "#/funding";
+  const about = route === "#/about";
   const countryMatch = /^#\/country\/([A-Za-z]{2})$/.exec(route);
 
   return (
@@ -559,8 +561,9 @@ export default function App() {
           <span className="brand">globalpeace.ai</span>
         </h1>
         <nav className="nav">
-          <a href="#/" className={review || proposals || funding || countryMatch ? "" : "on"}>Map</a>
+          <a href="#/" className={review || proposals || funding || about || countryMatch ? "" : "on"}>Map</a>
           <a href="#/proposals" className={proposals ? "on" : ""}>Proposals</a>
+          <a href="#/about" className={about ? "on" : ""}>About</a>
           <a href="#/funding" className={funding ? "on" : ""}>Funding</a>
           <a href="#/review" className={review ? "on" : ""}>Review</a>
         </nav>
@@ -572,11 +575,13 @@ export default function App() {
       {review ? <ReviewPage />
         : proposals ? <Proposals />
         : funding ? <Funding />
+        : about ? <About />
         : route === "#/privacy" ? <Privacy />
         : countryMatch ? <Country iso2={countryMatch[1].toUpperCase()} />
         : <Home />}
       <footer className="site-footer">
         <span>© 2026 Ricardo Andorinho · AGPL-3.0 ·</span>
+        <a href="#/about">About</a>
         <a href="#/privacy">Privacy &amp; legal</a>
         <a href="https://github.com/randorinho/globalpeace" target="_blank" rel="noreferrer">Source</a>
         <a href="#/funding">Funding</a>

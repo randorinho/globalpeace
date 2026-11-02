@@ -379,3 +379,7 @@ body { margin: 0; font-size: 15px; line-height: 1.5; }
 }
 .site-footer a { color: var(--gp-ink-muted); }
 .site-footer a:hover { color: var(--gp-primary); }
+
+/* about page */
+.about-journey { max-width: 860px; }
+.about-journey .step-detail { font-size: 13px; line-height: 1.45; }
