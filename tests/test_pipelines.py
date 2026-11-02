@@ -31,6 +31,11 @@ def test_classifier_maps_types_and_never_guesses():
     assert classify("Ebola outbreak spreads to eighth province") == "humanitarian_crisis"
     assert classify("Inflation and unemployment drive economic hardship") == "humanitarian_crisis"
     assert classify("Famine-stricken town hit by airstrike") == "attack"
+    # French reporting (ReliefWeb TD/CD coverage) classifies the same way
+    assert classify("Des milliers de déplacés après les affrontements") == "displacement"
+    assert classify("Aperçu de l'insécurité alimentaire aiguë") == "humanitarian_crisis"
+    assert classify("Attaque contre un convoi humanitaire, douze tués") == "attack"
+    assert classify("Cessez-le-feu annoncé après des pourparlers") == "negotiation"
 
 
 def test_country_matching_global_registry():
