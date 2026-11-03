@@ -48,7 +48,7 @@ def llm_opinion(event: dict, rules_audit: dict) -> dict | None:
     try:
         client = anthropic.Anthropic()
         response = client.messages.create(
-            model=llm_budget.MODEL,
+            model=llm_budget.PANEL_MODEL,
             max_tokens=2048,
             system=SYSTEM,
             output_config={"format": {"type": "json_schema", "schema": SCHEMA}},
@@ -67,8 +67,8 @@ def llm_opinion(event: dict, rules_audit: dict) -> dict | None:
         )
         llm_budget.spend(1)
         if response.stop_reason == "refusal":
-            return {"error": "analyst declined", "model": llm_budget.MODEL}
+            return {"error": "analyst declined", "model": llm_budget.PANEL_MODEL}
         text = next(b.text for b in response.content if b.type == "text")
-        return {**json.loads(text), "model": llm_budget.MODEL}
+        return {**json.loads(text), "model": llm_budget.PANEL_MODEL}
     except Exception as exc:  # noqa: BLE001 — audit must not fail on analyst errors
         return {"error": f"llm unavailable: {type(exc).__name__}"}

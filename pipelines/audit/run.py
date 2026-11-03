@@ -45,8 +45,15 @@ def main() -> None:
         audits[ev["event_id"]] = audit_event(ev, all_events)
         ev["_rules_audit"] = audits[ev["event_id"]]
 
-    # 2. continental desks: one panel of analyst agents per continent with work
-    if args.with_desks and targets:
+    # 2. continental desks: one panel of analyst agents per continent with work.
+    # AI stages run at most once per GPAI_DESKS_INTERVAL_H (default daily) —
+    # ingestion and the transparent rules stay on every cycle, they are free.
+    import llm_budget
+    desks_due = args.with_desks and targets and llm_budget.throttle(
+        "desks_run", llm_budget.interval_h("GPAI_DESKS_INTERVAL_H", 24.0))
+    if args.with_desks and targets and not desks_due:
+        print("desks: outside daily AI window — rules-only this cycle", file=sys.stderr)
+    if desks_due:
         for desk, desk_events in sorted(group_by_desk(targets).items()):
             print(f"[desk:{desk}] digest of {len(desk_events)} event(s), "
                   f"deploying {args.panel_size} analysts", file=sys.stderr)
@@ -63,7 +70,7 @@ def main() -> None:
                     "concerns": res["concerns"] if res else [],
                     "consensus_count": res["consensus_count"] if res else 0,
                     "digest_notes": panel["_digest_notes"],
-                    "model": __import__("llm_budget").MODEL,
+                    "model": llm_budget.PANEL_MODEL,
                 }
                 if res and res["concerns"]:
                     audit["reasons"] += res["concerns"]

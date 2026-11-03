@@ -32,6 +32,11 @@ def main() -> None:
     situations = build_situations(events, hra)
     print(f"{len(situations)} situation(s) from treated events", file=sys.stderr)
 
+    if not args.dry_run and not llm_budget.throttle(
+            "solutions_run", llm_budget.interval_h("GPAI_SOLUTIONS_INTERVAL_H", 24.0)):
+        print("solutions: outside daily AI window — skipped", file=sys.stderr)
+        return
+
     published = 0
     for situation in situations:
         # redraft only when the situation's event set changed since last publish

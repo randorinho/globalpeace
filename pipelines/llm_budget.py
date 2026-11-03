@@ -23,8 +23,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 STATE = Path(__file__).parent / ".state" / "llm_budget.json"
+# Public-facing drafts (solutions, HRA statement): Sonnet. High-volume
+# internal doubt-generation (desk panels, per-event opinions): Haiku —
+# together with the daily cadence this targets <$1/day at current volume.
 MODEL = os.environ.get("GPAI_LLM_MODEL", "claude-sonnet-5")
-DAILY_CAP = int(os.environ.get("GPAI_LLM_DAILY_CALL_CAP", "400"))
+PANEL_MODEL = os.environ.get("GPAI_LLM_PANEL_MODEL", "claude-haiku-4-5-20251001")
+DAILY_CAP = int(os.environ.get("GPAI_LLM_DAILY_CALL_CAP", "120"))
+
+def interval_h(name: str, default: float) -> float:
+    """Configured interval in hours for a throttled stage (env override)."""
+    try:
+        return float(os.environ.get(name, default))
+    except ValueError:
+        return default
 
 
 def _today() -> str:

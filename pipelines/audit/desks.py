@@ -92,7 +92,7 @@ def run_panel(desk: str, events: list[dict], panel_size: int = 6) -> dict | None
     for lens_name, lens_text in LENSES[:panel_size]:
         try:
             response = client.messages.create(
-                model=llm_budget.MODEL,
+                model=llm_budget.PANEL_MODEL,
                 max_tokens=16000,
                 system=SYSTEM_BASE + lens_text,
                 output_config={"format": {"type": "json_schema", "schema": PANEL_SCHEMA}},

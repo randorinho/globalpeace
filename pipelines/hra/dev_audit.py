@@ -67,7 +67,7 @@ def audit_development() -> dict | None:
     except ImportError:
         return None
     import llm_budget
-    if not llm_budget.throttle("hra_dev_audit", 6.0) or not llm_budget.allowed(1):
+    if not llm_budget.throttle("hra_dev_audit", llm_budget.interval_h("GPAI_HRA_AUDIT_INTERVAL_H", 24.0)) or not llm_budget.allowed(1):
         return None
     try:
         client = anthropic.Anthropic()
@@ -100,7 +100,7 @@ must be independently verified. 120-200 words, sober institutional voice."""
 
 def draft_statement(assessment: dict, actions: list[dict], dev_audit: dict | None) -> str | None:
     import llm_budget
-    if not llm_budget.throttle("hra_statement", 3.0) or not llm_budget.allowed(1):
+    if not llm_budget.throttle("hra_statement", llm_budget.interval_h("GPAI_HRA_STATEMENT_INTERVAL_H", 24.0)) or not llm_budget.allowed(1):
         return None
     try:
         import anthropic
