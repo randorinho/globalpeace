@@ -14,6 +14,8 @@ import httpx
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from common import API_URL, api_headers  # noqa: E402
 
+import llm_budget  # noqa: E402
+
 from .engine import draft_approaches  # noqa: E402
 from .situations import build_situations  # noqa: E402
 
@@ -32,6 +34,11 @@ def main() -> None:
 
     published = 0
     for situation in situations:
+        # redraft only when the situation's event set changed since last publish
+        fp = ",".join(sorted(e["event_id"] for e in situation["events"]))
+        if not args.dry_run and llm_budget.unchanged(f"solutions:{situation['country']}", fp):
+            print(f"[{situation['country']}] unchanged event set — redraft skipped", file=sys.stderr)
+            continue
         drafted = draft_approaches(situation)
         if not drafted:
             print(f"[{situation['country']}] engine unavailable — skipped", file=sys.stderr)
@@ -49,6 +56,7 @@ def main() -> None:
         r = httpx.post(f"{API_URL}/solutions", json=payload,
                        headers=api_headers(), timeout=30)
         r.raise_for_status()
+        llm_budget.record(f"solutions:{situation['country']}", fp)
         published += 1
         pol = sum(1 for a in drafted["approaches"] if a["level"] == "political")
         eco = sum(1 for a in drafted["approaches"] if a["level"] == "economic")

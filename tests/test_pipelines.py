@@ -105,6 +105,26 @@ def test_geolocate_city_scoped_to_country(tmp_path, monkeypatch):
     assert g.locate("No city named in this title", "SD") is None
 
 
+def test_llm_budget_guardrails(tmp_path, monkeypatch):
+    import llm_budget as b
+    monkeypatch.setattr(b, "STATE", tmp_path / "llm_budget.json")
+    monkeypatch.setattr(b, "DAILY_CAP", 3)
+    assert b.allowed(3)
+    b.spend(3)
+    assert not b.allowed(1)          # cap is a hard ceiling
+    monkeypatch.setenv("GPAI_LLM_DISABLED", "1")
+    assert not b.allowed(0)          # kill switch beats everything
+    monkeypatch.delenv("GPAI_LLM_DISABLED")
+    # fingerprints: read-only check, explicit record on success
+    assert not b.unchanged("solutions:SD", "a,b")
+    b.record("solutions:SD", "a,b")
+    assert b.unchanged("solutions:SD", "a,b")
+    assert not b.unchanged("solutions:SD", "a,b,c")
+    # throttle: first call runs, immediate second call is held
+    assert b.throttle("hra_statement", 1.0)
+    assert not b.throttle("hra_statement", 1.0)
+
+
 def test_source_tiers():
     assert source_tier(["https://reliefweb.int/report/x"])[0] == "institutional"
     assert source_tier(["https://iom.int/news/x"])[0] == "institutional"

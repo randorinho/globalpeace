@@ -79,6 +79,10 @@ def run_panel(desk: str, events: list[dict], panel_size: int = 6) -> dict | None
     except ImportError:
         return None
 
+    import llm_budget
+    if not llm_budget.allowed(panel_size):
+        return None
+
     digest = _digest_payload(events)
     per_event: dict[str, list[tuple[str, str]]] = {e["event_id"]: [] for e in events}
     notes: list[str] = []
@@ -88,7 +92,7 @@ def run_panel(desk: str, events: list[dict], panel_size: int = 6) -> dict | None
     for lens_name, lens_text in LENSES[:panel_size]:
         try:
             response = client.messages.create(
-                model="claude-opus-5",
+                model=llm_budget.MODEL,
                 max_tokens=16000,
                 system=SYSTEM_BASE + lens_text,
                 output_config={"format": {"type": "json_schema", "schema": PANEL_SCHEMA}},
@@ -98,6 +102,7 @@ def run_panel(desk: str, events: list[dict], panel_size: int = 6) -> dict | None
                                "Analyse every event under your lens.",
                 }],
             )
+            llm_budget.spend(1)
             if response.stop_reason == "refusal":
                 continue
             if response.stop_reason == "max_tokens":

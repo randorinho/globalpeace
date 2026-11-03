@@ -47,7 +47,7 @@ def main() -> None:
         "vitals": assessment,
         "priorities": actions,
         "platform_audit": dev_audit,
-        "engine": "hra-vitals-v1" + ("+claude-opus-5" if dev_audit and "error" not in (dev_audit or {}) else ""),
+        "engine": "hra-vitals-v1" + (f"+{__import__('llm_budget').MODEL}" if dev_audit and "error" not in (dev_audit or {}) else ""),
     }
     if args.dry_run:
         print(json.dumps(position, indent=1)[:2500])

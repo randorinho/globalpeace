@@ -42,10 +42,13 @@ def llm_opinion(event: dict, rules_audit: dict) -> dict | None:
         import anthropic
     except ImportError:
         return None
+    import llm_budget
+    if not llm_budget.allowed(1):
+        return {"error": "llm budget exhausted"}
     try:
         client = anthropic.Anthropic()
         response = client.messages.create(
-            model="claude-opus-5",
+            model=llm_budget.MODEL,
             max_tokens=2048,
             system=SYSTEM,
             output_config={"format": {"type": "json_schema", "schema": SCHEMA}},
@@ -62,9 +65,10 @@ def llm_opinion(event: dict, rules_audit: dict) -> dict | None:
                 ),
             }],
         )
+        llm_budget.spend(1)
         if response.stop_reason == "refusal":
-            return {"error": "analyst declined", "model": "claude-opus-5"}
+            return {"error": "analyst declined", "model": llm_budget.MODEL}
         text = next(b.text for b in response.content if b.type == "text")
-        return {**json.loads(text), "model": "claude-opus-5"}
+        return {**json.loads(text), "model": llm_budget.MODEL}
     except Exception as exc:  # noqa: BLE001 — audit must not fail on analyst errors
         return {"error": f"llm unavailable: {type(exc).__name__}"}

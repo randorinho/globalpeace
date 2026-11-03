@@ -23,6 +23,16 @@ The platform is live at globalpeace.ai; these make it dependable.
       ingest run (cron/launchd now; Cloudflare Cron Triggers + Queues later)
 - [x] **Anthropic API credentials on the pipeline host** — activates the six
       continental audit desks (code shipped, degrades to rules-only today)
+- [~] **LLM cost guardrails** (incident 2026-11-01→03: ~$187 in two days —
+      6 desks × 6 Opus panelists every 30 min + full solutions redrafts; key
+      revoked). Shipped: central `pipelines/llm_budget.py` — default model
+      claude-sonnet-5 (GPAI_LLM_MODEL), daily call cap 400 (GPAI_LLM_DAILY_CALL_CAP),
+      kill switch (GPAI_LLM_DISABLED=1), HRA self-audit throttled to 6h /
+      statement 3h, solutions redraft only when a situation's event set
+      changes; cap/disable degrade loudly to rules-only. Remaining (action:
+      Ricardo, Anthropic Console): dedicated workspace with monthly spend
+      limit, auto-reload off, one key per service; check usage-by-model.
+      Future: Batch API for desks (50% cheaper, audits don't need realtime).
 - [ ] **Cloudflare Access on review APIs** — reviewer login via Access,
       identity from `cf-access-authenticated-user-email`; then open
       `/api/review/*` at the edge for remote reviewers

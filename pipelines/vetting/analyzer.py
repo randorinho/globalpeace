@@ -100,7 +100,7 @@ def vet(url: str) -> dict:
     opinions: dict[str, dict] = {}
     for lens, lens_text in LENSES.items():
         response = client.messages.create(
-            model="claude-opus-5",
+            model=__import__("llm_budget").MODEL,
             max_tokens=2048,
             system=SYSTEM + lens_text,
             output_config={"format": {"type": "json_schema", "schema": SCHEMA}},
@@ -127,5 +127,5 @@ def vet(url: str) -> dict:
         "status": "provisional",  # human ratifies in the registry
         "unanimous": all(r == recs[0] for r in recs),
         "opinions": opinions,
-        "model": "claude-opus-5",
+        "model": __import__("llm_budget").MODEL,
     }

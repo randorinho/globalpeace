@@ -77,18 +77,22 @@ def draft_approaches(situation: dict) -> dict | None:
         import anthropic
     except ImportError:
         return None
+    import llm_budget
+    if not llm_budget.allowed(len(LENSES)):
+        return None
     client = anthropic.Anthropic()
     out: dict[str, list] = {}
     for lens, prompt in LENSES.items():
         try:
             response = client.messages.create(
-                model="claude-opus-5",
+                model=llm_budget.MODEL,
                 max_tokens=16000,
                 system=prompt + COMMON_RULES,
                 output_config={"format": {"type": "json_schema", "schema": APPROACH_SCHEMA}},
                 messages=[{"role": "user", "content":
                            "Situation digest:\n" + json.dumps(situation, indent=1)[:30000]}],
             )
+            llm_budget.spend(1)
             if response.stop_reason in ("refusal", "max_tokens"):
                 print(f"  solutions/{lens}: {response.stop_reason}", file=sys.stderr)
                 continue
@@ -101,4 +105,4 @@ def draft_approaches(situation: dict) -> dict | None:
     if not out:
         return None
     return {"approaches": [a for lst in out.values() for a in lst],
-            "model": "claude-opus-5"}
+            "model": llm_budget.MODEL}

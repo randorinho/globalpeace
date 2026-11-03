@@ -66,22 +66,26 @@ def audit_development() -> dict | None:
         import anthropic
     except ImportError:
         return None
+    import llm_budget
+    if not llm_budget.throttle("hra_dev_audit", 6.0) or not llm_budget.allowed(1):
+        return None
     try:
         client = anthropic.Anthropic()
         response = client.messages.create(
-            model="claude-opus-5",
+            model=llm_budget.MODEL,
             max_tokens=16000,
             system=SYSTEM,
             output_config={"format": {"type": "json_schema", "schema": SCHEMA}},
             messages=[{"role": "user", "content":
                        "Platform state to audit:\n" + json.dumps(gather_inputs(), indent=1)[:40000]}],
         )
+        llm_budget.spend(1)
         if response.stop_reason == "refusal":
             return {"error": "agent declined"}
         if response.stop_reason == "max_tokens":
             return {"error": "truncated"}
         return {**json.loads(next(b.text for b in response.content if b.type == "text")),
-                "model": "claude-opus-5"}
+                "model": llm_budget.MODEL}
     except Exception as exc:  # noqa: BLE001
         return {"error": f"unavailable: {type(exc).__name__}"}
 
@@ -95,16 +99,20 @@ must be independently verified. 120-200 words, sober institutional voice."""
 
 
 def draft_statement(assessment: dict, actions: list[dict], dev_audit: dict | None) -> str | None:
+    import llm_budget
+    if not llm_budget.throttle("hra_statement", 3.0) or not llm_budget.allowed(1):
+        return None
     try:
         import anthropic
         client = anthropic.Anthropic()
         response = client.messages.create(
-            model="claude-opus-5",
+            model=llm_budget.MODEL,
             max_tokens=4096,
             system=STATEMENT_SYSTEM,
             messages=[{"role": "user", "content": json.dumps(
                 {"vitals": assessment, "priorities": actions[:8], "self_audit": dev_audit}, indent=1)[:30000]}],
         )
+        llm_budget.spend(1)
         if response.stop_reason == "refusal":
             return None
         return next(b.text for b in response.content if b.type == "text").strip()

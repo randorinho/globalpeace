@@ -63,7 +63,7 @@ def main() -> None:
                     "concerns": res["concerns"] if res else [],
                     "consensus_count": res["consensus_count"] if res else 0,
                     "digest_notes": panel["_digest_notes"],
-                    "model": "claude-opus-5",
+                    "model": __import__("llm_budget").MODEL,
                 }
                 if res and res["concerns"]:
                     audit["reasons"] += res["concerns"]
