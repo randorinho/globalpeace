@@ -91,9 +91,11 @@ export default function About() {
         <p className="funding-none">
           The platform is free software (AGPL-3.0) with a public repository,
           open JSON APIs, and a Digital Public Good application under review
-          (submitted November 2026). It is built and maintained by{" "}
-          <strong>Ricardo Andorinho</strong> (Portugal), with a published{" "}
-          <a href="#/funding">funding policy</a>, a{" "}
+          (submitted November 2026). It is an independent, Portuguese-led open
+          project — ownership and maintainer are documented in the{" "}
+          <a href="https://github.com/randorinho/globalpeace/blob/main/README.md#ownership-and-license" target="_blank" rel="noreferrer">
+            repository's ownership statement
+          </a>, with a published <a href="#/funding">funding policy</a>, a{" "}
           <a href="#/privacy">privacy-by-minimisation posture</a>, and a{" "}
           <a href="https://github.com/randorinho/globalpeace/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noreferrer">code of conduct</a>.
           Source, documentation and verification methodology:{" "}

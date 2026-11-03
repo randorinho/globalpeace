@@ -45,7 +45,7 @@ export default function Privacy() {
               could endanger a person, the platform must not publish it automatically, even when accurate.</li>
           <li>Corrections: every published event carries a public verification trail, and a public
               correction mechanism exists. To request a correction or removal, write to
-              randorinho@mbuintelligence.com — requests are answered within 30 days.</li>
+              contact@globalpeace.ai — requests are answered within 30 days.</li>
         </ul>
       </div>
 

@@ -580,7 +580,7 @@ export default function App() {
         : countryMatch ? <Country iso2={countryMatch[1].toUpperCase()} />
         : <Home />}
       <footer className="site-footer">
-        <span>© 2026 Ricardo Andorinho · AGPL-3.0 ·</span>
+        <span>© 2026 globalpeace.ai · AGPL-3.0 ·</span>
         <a href="#/about">About</a>
         <a href="#/privacy">Privacy &amp; legal</a>
         <a href="https://github.com/randorinho/globalpeace" target="_blank" rel="noreferrer">Source</a>
