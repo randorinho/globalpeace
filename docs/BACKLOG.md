@@ -25,7 +25,9 @@ The platform is live at globalpeace.ai; these make it dependable.
       continental audit desks (code shipped, degrades to rules-only today)
 - [~] **LLM cost guardrails** (incident 2026-11-01→03: ~$187 in two days —
       6 desks × 6 Opus panelists every 30 min + full solutions redrafts; key
-      revoked). Shipped: central `pipelines/llm_budget.py` — default model
+      `gpai-audit-desks` revoked). Nota D (DPO, 2026-11-04): incident also
+      logged in the MBU DPO register — Anthropic is a processor in this
+      pipeline and must be declared as such (see D15 below). Shipped: central `pipelines/llm_budget.py` — default model
       claude-sonnet-5 (GPAI_LLM_MODEL), daily call cap 400 (GPAI_LLM_DAILY_CALL_CAP),
       kill switch (GPAI_LLM_DISABLED=1), HRA self-audit throttled to 6h /
       statement 3h, solutions redraft only when a situation's event set
@@ -49,6 +51,23 @@ The platform is live at globalpeace.ai; these make it dependable.
 
 ## P1 — Intelligence depth
 
+- [~] **Privacy page corrections — DPO desvio D15** (P1, due 2026-11-07
+      08:10; raised when globalpeace.ai entered the MBU DPO inventory as a
+      confirmed MBU project). The privacy page claimed the site collects no
+      personal data from visitors (frontend/src/Privacy.tsx), but the map sent
+      every visitor's IP to `demotiles.maplibre.org` (undisclosed third party),
+      the controller was not named, and processors were not declared.
+      Fixed 2026-11-04, awaiting DPO check: `/map/*` edge proxy
+      (edge/gateway) fetches glyphs+tiles without forwarding client headers
+      and rewrites the TileJSON, so visitor IPs never reach the tile host;
+      Privacy.tsx now names MBU iNtelligence, Lda (NIPC 506988198, Évora,
+      contact@globalpeace.ai) as controller, declares Cloudflare (edge, USA),
+      Anthropic (LLM auditing, USA) and Hetzner (backend, DE/EU) as
+      processors, states the US-transfer basis (DPF / SCC), and records that
+      public contributions are human-reviewed only (verified in code: nothing
+      in pipelines/ reads the Contribution table, so no form-side AI notice
+      is required). DPO to verify: transfer-basis wording and processor list;
+      deploy to production (main) after the check.
 - [ ] **ACLED connector** — register for API access; conflict-event ingestion +
       the cross-check target the audit matrix already names
 - [ ] **UNHCR data portal connector** — refugee/displacement figures

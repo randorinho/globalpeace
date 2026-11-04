@@ -27,6 +27,14 @@ export default defineConfig({
         rewrite: (p) => p.replace(/^\/api/, ""),
         headers: { "x-gateway-secret": gatewaySecret() },
       },
+      // Basemap proxy, mirroring the Workers gateway /map route. Dev-only
+      // caveat: the TileJSON body still points at the upstream host, so the
+      // dev browser fetches tiles directly; production rewrites it at the edge.
+      "/map": {
+        target: "https://demotiles.maplibre.org",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/map/, ""),
+      },
     },
   },
 });

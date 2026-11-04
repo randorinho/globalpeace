@@ -14,6 +14,25 @@ export default function Privacy() {
       </div>
 
       <div className="hra">
+        <div className="hra-head"><h3>Controller &amp; processors</h3></div>
+        <ul className="legal-list">
+          <li><strong>Data controller:</strong> MBU iNtelligence, Lda (NIPC 506988198),
+              Av. Dr. Francisco Sá Carneiro 58, 1.º, 7000-757 Évora, Portugal —{" "}
+              contact@globalpeace.ai.</li>
+          <li><strong>Processors:</strong> Cloudflare, Inc. (edge hosting, CDN and security, USA);
+              Anthropic, PBC (AI auditing of published institutional conflict reporting, USA);
+              Hetzner Online GmbH (backend hosting, Germany, EU).</li>
+          <li><strong>International transfers:</strong> Cloudflare and Anthropic process data in the
+              United States under the EU-U.S. Data Privacy Framework and, where applicable,
+              Standard Contractual Clauses.</li>
+          <li>The map's fonts and country boundaries (MapLibre demo tiles) are served through this
+              site's own edge proxy — your IP address is never sent to the tile provider.</li>
+          <li>Public contributions are reviewed by humans only; their text is not sent to
+              AI models.</li>
+        </ul>
+      </div>
+
+      <div className="hra">
         <div className="hra-head"><h3>What we do not collect</h3></div>
         <ul className="legal-list">
           <li>No user accounts, no registration, no login for the public site.</li>

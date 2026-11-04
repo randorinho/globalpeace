@@ -5,7 +5,7 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { centroidFor } from "./centroids";
-import { COUNTRY_NAMES, eventFeatures, fetchJSON, fmtDate as fmt } from "./mapdata";
+import { COUNTRY_NAMES, baseMapStyle, eventFeatures, fetchJSON, fmtDate as fmt } from "./mapdata";
 import type { GPEvent } from "./types";
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
@@ -92,20 +92,7 @@ export default function Home() {
     if (!mapDiv.current || events.length === 0) return;
     const map = new maplibregl.Map({
       container: mapDiv.current,
-      style: {
-        version: 8,
-        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-        sources: {
-          countries: { type: "vector", url: "https://demotiles.maplibre.org/tiles/tiles.json" },
-        },
-        layers: [
-          { id: "bg", type: "background", paint: { "background-color": "#dfe9e5" } },
-          { id: "land", type: "fill", source: "countries", "source-layer": "countries",
-            paint: { "fill-color": "#f7faf9", "fill-outline-color": "#b8c4bf" } },
-          { id: "borders", type: "line", source: "countries", "source-layer": "countries",
-            paint: { "line-color": "#a7b3ae", "line-width": 0.6 } },
-        ],
-      },
+      style: baseMapStyle() as maplibregl.StyleSpecification,
       center: [15, 12],
       zoom: 2.2,
       attributionControl: { compact: true },

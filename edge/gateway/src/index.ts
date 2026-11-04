@@ -10,6 +10,14 @@
 
 const API_PREFIX = "/api";
 
+// Basemap proxy (DPO desvio D15): glyphs and country tiles are fetched by the
+// edge on the visitor's behalf so the visitor's IP and headers never reach the
+// third-party tile host. The TileJSON's absolute upstream URLs are rewritten
+// to this proxy, otherwise the browser would contact the upstream directly.
+const MAP_PREFIX = "/map";
+const MAP_UPSTREAM = "https://demotiles.maplibre.org";
+const MAP_CACHE_SECONDS = 86400;
+
 // Methods the public API accepts; everything else is rejected at the edge.
 const ALLOWED_METHODS = new Set(["GET", "HEAD", "POST", "OPTIONS"]);
 
@@ -28,6 +36,42 @@ export default {
     // Edge health check — answered without touching the origin.
     if (url.pathname === `${API_PREFIX}/edge-healthz`) {
       return Response.json({ status: "ok", edge: true });
+    }
+
+    if (url.pathname.startsWith(`${MAP_PREFIX}/`)) {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return jsonError(405, "method not allowed");
+      }
+      const upstreamPath = url.pathname.slice(MAP_PREFIX.length);
+      try {
+        // Fresh request, no client headers forwarded — the tile host sees
+        // only the Cloudflare egress, never the visitor.
+        const upstream = await fetch(`${MAP_UPSTREAM}${upstreamPath}`, {
+          method: request.method,
+          cf: { cacheEverything: true, cacheTtl: MAP_CACHE_SECONDS },
+        });
+        const headers = new Headers(upstream.headers);
+        headers.set("cache-control", `public, max-age=${MAP_CACHE_SECONDS}`);
+        if (upstreamPath === "/tiles/tiles.json") {
+          const tilejson = (await upstream.text()).replaceAll(
+            MAP_UPSTREAM,
+            `${url.origin}${MAP_PREFIX}`,
+          );
+          headers.set("content-type", "application/json");
+          return new Response(tilejson, { status: upstream.status, headers });
+        }
+        return new Response(upstream.body, { status: upstream.status, headers });
+      } catch (err) {
+        console.log(
+          JSON.stringify({
+            level: "error",
+            msg: "map upstream fetch failed",
+            path: url.pathname,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+        return jsonError(502, "map tiles unavailable");
+      }
     }
 
     if (!url.pathname.startsWith(API_PREFIX)) {

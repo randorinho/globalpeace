@@ -63,13 +63,16 @@ export function eventFeatures(events: GPEvent[]) {
   };
 }
 
-/** Base style shared by the home map and country mini-maps. */
+/** Base style shared by the home map and country mini-maps.
+ * Glyphs and tiles go through our own edge proxy (/map, edge/gateway) so the
+ * visitor's IP never reaches the third-party tile host (DPO desvio D15). */
 export function baseMapStyle() {
+  const mapProxy = `${location.origin}/map`;
   return {
     version: 8 as const,
-    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    glyphs: `${mapProxy}/font/{fontstack}/{range}.pbf`,
     sources: {
-      countries: { type: "vector" as const, url: "https://demotiles.maplibre.org/tiles/tiles.json" },
+      countries: { type: "vector" as const, url: `${mapProxy}/tiles/tiles.json` },
     },
     layers: [
       { id: "bg", type: "background" as const, paint: { "background-color": "#dfe9e5" } },

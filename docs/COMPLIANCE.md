@@ -46,3 +46,15 @@ claims and are never fed to agents without moderation.
 - PII screen on public contributions; pseudonymisation commitments in
   GOVERNANCE.md; public trails expose actor *classes* (operator / ai-pipeline),
   never personal identifiers; rate-limit keys hashed in memory, not stored.
+
+## Open deviations (DPO register)
+
+- **D15** (P1, due 2026-11-07) — *fixed 2026-11-04, awaiting DPO check*:
+  the privacy page's "no personal data from visitors" claim had three gaps —
+  map glyphs/tiles fetched from `demotiles.maplibre.org` (visitor IPs reached
+  an undisclosed third party), controller not named, processors not declared.
+  Fix: `/map/*` edge proxy strips client identity before the tile host
+  (edge/gateway/src/index.ts); Privacy.tsx now names the controller
+  (MBU iNtelligence, Lda, NIPC 506988198), the processors (Cloudflare,
+  Anthropic, Hetzner) and the US-transfer basis (DPF / SCC). Details in
+  docs/BACKLOG.md (P1).
