@@ -62,7 +62,7 @@ events that leave the published set are deleted (publish/remove symmetry).
 
 ## Phases
 
-### Phase 1 — publisher + snapshot reads (no behavior change on failure)
+### Phase 1 — publisher + snapshot reads (no behavior change on failure) ✅ 2026-11-08
 
 1. `pipelines/publish/run.py`: queries localhost:8000 for each payload above,
    diffs against the manifest, uploads changed keys to R2 (boto3, S3 API;

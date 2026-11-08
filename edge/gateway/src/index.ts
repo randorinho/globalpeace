@@ -25,6 +25,34 @@ function jsonError(status: number, detail: string): Response {
   return Response.json({ detail }, { status });
 }
 
+// Dark-origin snapshots (docs/DARK_ORIGIN.md): maps a public GET to its
+// snapshot key in the SNAPSHOTS bucket. Must mirror the publisher's table
+// (pipelines/publish/run.py). Returns null for shapes that aren't snapshotted
+// (those keep proxying to the origin until phase 3).
+function snapshotKey(url: URL): string | null {
+  const rest = url.pathname.slice(`${API_PREFIX}/public`.length);
+  if (rest === "/events") return "public/events.json"; // limit param is advisory: one canonical file
+  if (rest === "/events.geojson") return "public/events.geojson";
+  if (rest === "/events.csv") return "public/events.csv";
+  if (rest === "/arms-transfers") {
+    const country = url.searchParams.get("country");
+    if (!country) return "public/arms-transfers.json";
+    return /^[A-Za-z]{2}$/.test(country)
+      ? `public/arms-transfers/${country.toUpperCase()}.json`
+      : null; // name-based lookups stay on the origin
+  }
+  if (rest === "/hra/position") return "public/hra/position.json";
+  if (rest === "/hra/positions") return "public/hra/positions.json";
+  if (rest === "/solutions") return "public/solutions.json";
+  if (rest === "/solutions/history") return "public/solutions/history.json";
+  if (rest === "/meta") return "public/meta.json"; // snapshot-only (no origin equivalent)
+  const trail = /^\/events\/([A-Za-z0-9-]{1,64})\/trail$/.exec(rest);
+  if (trail) return `public/trails/${trail[1]}.json`;
+  return null;
+}
+
+const SNAPSHOT_CACHE_SECONDS = 300;
+
 export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url);
@@ -91,6 +119,25 @@ export default {
     const rest = url.pathname.slice(API_PREFIX.length) || "/";
     if (!rest.startsWith("/public/") && rest !== "/healthz") {
       return jsonError(403, "this endpoint requires authenticated access");
+    }
+
+    // Public GETs serve from the published snapshot when one exists; a miss
+    // falls through to the origin proxy (phase-1 reversibility).
+    if (request.method === "GET" && rest.startsWith("/public/")) {
+      const key = snapshotKey(url);
+      const object = key ? await env.SNAPSHOTS.get(key) : null;
+      if (object) {
+        const headers = new Headers({
+          "content-type": object.httpMetadata?.contentType ?? "application/json",
+          "cache-control": `public, max-age=${SNAPSHOT_CACHE_SECONDS}`,
+          etag: object.httpEtag,
+          "x-gpai-snapshot": "1",
+        });
+        if (key === "public/events.csv") {
+          headers.set("content-disposition", 'attachment; filename="globalpeace-events.csv"');
+        }
+        return new Response(object.body, { headers });
+      }
     }
 
     // Map /api/<rest> → origin /<rest>

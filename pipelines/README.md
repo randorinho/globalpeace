@@ -15,5 +15,6 @@ python -m ingest.run --source reliefweb-sd
 - `ingest/classify.py` — auditable regex rules → event type; unmatched items are skipped and logged, never guessed
 - `ingest/dedupe.py` — sqlite ledger in `.state/` so re-runs don't re-post
 - Everything lands as `information_type=claim`, `verification_status=unverified` — verification is a separate audited step
+- `publish/` — dark-origin snapshot publisher (docs/DARK_ORIGIN.md): mirrors every public API payload to the R2 bucket the edge worker serves (`python -m publish.run`, `--dry-run`, `--verify`); incremental via `.state/snapshots.json`; uploads over the S3 API (`R2_ENDPOINT`/`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` in infra/.env) or an authenticated wrangler as fallback, and skips harmlessly with neither
 
 Next: wire connectors to Kafka/Redpanda topics and scheduled runs (Cloudflare Cron Triggers → Queues, or local cron).

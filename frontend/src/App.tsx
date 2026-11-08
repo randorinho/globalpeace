@@ -533,10 +533,21 @@ export default function App() {
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   );
 
+  // Snapshot freshness (docs/DARK_ORIGIN.md): data staleness must be visible,
+  // never silent. Absent until the edge serves published snapshots.
+  const [dataAsOf, setDataAsOf] = useState<string | null>(null);
+
   useEffect(() => {
     const onHash = () => setRoute(window.location.hash);
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/public/meta")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m) => m?.generated_at && setDataAsOf(m.generated_at))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -585,6 +596,9 @@ export default function App() {
         <a href="#/privacy">Privacy &amp; legal</a>
         <a href="https://github.com/randorinho/globalpeace" target="_blank" rel="noreferrer">Source</a>
         <a href="#/funding">Funding</a>
+        {dataAsOf && (
+          <span>data as of {dataAsOf.slice(0, 16).replace("T", " ")} UTC</span>
+        )}
       </footer>
     </div>
   );

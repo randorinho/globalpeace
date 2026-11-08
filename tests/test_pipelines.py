@@ -85,6 +85,25 @@ def test_normative_anchors_reach_every_prioritizing_prompt():
         assert anchor in NORMATIVE_ANCHORS
 
 
+def test_snapshot_plan_is_incremental_and_fails_safe():
+    from publish.run import plan
+    manifest = {"public/events.json": "aaa", "public/trails/gone.json": "bbb",
+                "not-ours/x": "ccc"}
+    produced = {"public/events.json": "aaa",       # unchanged -> not re-put
+                "public/solutions.json": "ddd"}    # new -> put
+    put, delete = plan(produced, manifest, complete=True)
+    assert put == ["public/solutions.json"]
+    # removed keys are deleted (publish/remove symmetry), but only under
+    # public/ — the bucket may hold objects this publisher doesn't own
+    assert delete == ["public/trails/gone.json"]
+    # a partial production run must never delete healthy snapshots
+    put, delete = plan(produced, manifest, complete=False)
+    assert delete == [] and put == ["public/solutions.json"]
+    # changed content -> re-put
+    put, _ = plan({"public/events.json": "zzz"}, manifest, complete=True)
+    assert put == ["public/events.json"]
+
+
 def test_ucdp_row_maps_structurally():
     from ingest.connectors.ucdp import _to_item
     from ingest.registry import SourceConfig
