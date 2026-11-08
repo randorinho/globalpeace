@@ -195,6 +195,21 @@ class ContributionIn(BaseModel):
     website: str = Field(default="", max_length=0)
 
 
+class ContributionImportItem(BaseModel):
+    """One row drained from the edge buffer (dark-origin phase 2). The edge id
+    becomes the contribution_id, so re-imports after a failed ack are no-ops."""
+
+    id: str = Field(min_length=1, max_length=64)
+    text: str = Field(min_length=10, max_length=2000)
+    url: HttpUrl | None = None
+    event_id: str | None = Field(default=None, max_length=64)
+    created_at: str | None = None
+
+
+class ContributionImportIn(BaseModel):
+    contributions: list[ContributionImportItem] = Field(max_length=200)
+
+
 class ContributionOut(BaseModel):
     contribution_id: str
     event_id: str | None

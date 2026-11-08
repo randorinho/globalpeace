@@ -53,6 +53,118 @@ function snapshotKey(url: URL): string | null {
 
 const SNAPSHOT_CACHE_SECONDS = 300;
 
+// ---- public contributions buffer (dark-origin phase 2) ---------------------
+// The edge enforces what the origin enforces (backend/app/routers/public.py):
+// honeypot, size caps, PII screen, 5/hour per hashed client IP. The canonical
+// Python screen re-runs at drain time; this is the first gate, not the last.
+
+const RATE_MAX = 5;
+const PII_PATTERN = /\b[\w.+-]+@[\w-]+\.[\w.]+\b|\+?\d[\d\s().-]{8,}\d/;
+
+async function clientHash(request: Request): Promise<string> {
+  // Hashed, never stored raw — mirrors the origin's data minimisation.
+  const ip = request.headers.get("cf-connecting-ip") ?? "?";
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
+
+function secretOk(request: Request, env: Env): boolean {
+  const supplied = new TextEncoder().encode(request.headers.get("x-gateway-secret") ?? "");
+  const expected = new TextEncoder().encode(env.GATEWAY_SHARED_SECRET);
+  return supplied.byteLength === expected.byteLength &&
+    crypto.subtle.timingSafeEqual(supplied, expected);
+}
+
+async function submitContribution(request: Request, env: Env): Promise<Response> {
+  let body: { text?: unknown; url?: unknown; event_id?: unknown; website?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return jsonError(422, "invalid JSON body");
+  }
+  if (body.website !== undefined && body.website !== "") {
+    return jsonError(422, "invalid submission"); // honeypot — never name it
+  }
+  const text = typeof body.text === "string" ? body.text.trim() : "";
+  if (text.length < 10 || text.length > 2000) {
+    return jsonError(422, "text must be between 10 and 2000 characters");
+  }
+  if (PII_PATTERN.test(text)) {
+    return jsonError(422,
+      "please remove personal data (emails, phone numbers) — testimonies are pseudonymised by design");
+  }
+  let contributionUrl: string | null = null;
+  if (body.url !== undefined && body.url !== null && body.url !== "") {
+    try {
+      const parsed = new URL(String(body.url));
+      if (!/^https?:$/.test(parsed.protocol) || String(body.url).length > 2048) throw new Error();
+      contributionUrl = parsed.toString();
+    } catch {
+      return jsonError(422, "url must be a valid http(s) link");
+    }
+  }
+  const eventId = typeof body.event_id === "string" ? body.event_id : null;
+  if (eventId !== null && !/^[A-Za-z0-9-]{1,64}$/.test(eventId)) {
+    return jsonError(422, "invalid event_id"); // referential check happens at drain time
+  }
+  const hash = await clientHash(request);
+  try {
+    const recent = await env.PENDING.prepare(
+      "SELECT COUNT(*) AS n FROM pending_contributions WHERE client_hash = ?1 AND created_at > datetime('now', '-1 hour')",
+    ).bind(hash).first<{ n: number }>();
+    if ((recent?.n ?? 0) >= RATE_MAX) {
+      return jsonError(429, "rate limit: try again later");
+    }
+    const id = crypto.randomUUID();
+    await env.PENDING.prepare(
+      "INSERT INTO pending_contributions (id, event_id, text, url, client_hash, created_at) VALUES (?1, ?2, ?3, ?4, ?5, datetime('now'))",
+    ).bind(id, eventId, text, contributionUrl, hash).run();
+    return Response.json(
+      { contribution_id: id, event_id: eventId, text, url: contributionUrl, status: "pending" },
+      { status: 202 },
+    );
+  } catch (err) {
+    console.log(JSON.stringify({
+      level: "error", msg: "contribution buffer write failed",
+      error: err instanceof Error ? err.message : String(err),
+    }));
+    return jsonError(503, "contributions temporarily unavailable — try again later");
+  }
+}
+
+// Origin-initiated drain (pipelines/contributions): list pending, then ack.
+// Ack flags drained=1 rather than deleting so the hourly rate limit stays
+// exact across drains; drained rows are purged after 25 h.
+async function handleInternal(rest: string, request: Request, env: Env): Promise<Response> {
+  if (!secretOk(request, env)) {
+    return jsonError(403, "forbidden");
+  }
+  if (rest === "/internal/contributions/pending" && request.method === "GET") {
+    const rows = await env.PENDING.prepare(
+      "SELECT id, event_id, text, url, created_at FROM pending_contributions WHERE drained = 0 ORDER BY created_at LIMIT 200",
+    ).all();
+    return Response.json({ contributions: rows.results });
+  }
+  if (rest === "/internal/contributions/ack" && request.method === "POST") {
+    const body = (await request.json().catch(() => ({}))) as { ids?: unknown };
+    const ids = Array.isArray(body.ids)
+      ? body.ids.filter((x): x is string => typeof x === "string").slice(0, 200)
+      : [];
+    let acked = 0;
+    for (const id of ids) {
+      const res = await env.PENDING.prepare(
+        "UPDATE pending_contributions SET drained = 1 WHERE id = ?1",
+      ).bind(id).run();
+      acked += res.meta.changes ?? 0;
+    }
+    await env.PENDING.prepare(
+      "DELETE FROM pending_contributions WHERE drained = 1 AND created_at < datetime('now', '-25 hours')",
+    ).run();
+    return Response.json({ acked });
+  }
+  return jsonError(404, "not found");
+}
+
 export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url);
@@ -117,8 +229,20 @@ export default {
     // evidence APIs stay closed at the edge until a Cloudflare Access policy
     // protects them — reviewers work via the local dashboard meanwhile.
     const rest = url.pathname.slice(API_PREFIX.length) || "/";
+
+    // Origin-initiated drain of the contributions buffer (shared-secret auth).
+    if (rest.startsWith("/internal/")) {
+      return handleInternal(rest, request, env);
+    }
+
     if (!rest.startsWith("/public/") && rest !== "/healthz") {
       return jsonError(403, "this endpoint requires authenticated access");
+    }
+
+    // Contributions never travel to the origin: buffered in D1 at the edge,
+    // drained by the origin during pipeline windows (dark-origin phase 2).
+    if (rest === "/public/contributions" && request.method === "POST") {
+      return submitContribution(request, env);
     }
 
     // Public GETs serve from the published snapshot when one exists; a miss

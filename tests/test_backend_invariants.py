@@ -8,8 +8,23 @@ from pydantic import ValidationError
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
 from app.schemas import (  # noqa: E402
-    AuditIn, ContributionIn, EventCreate, InformationType, VerificationStatus,
+    AuditIn, ContributionImportIn, ContributionIn, EventCreate, InformationType,
+    VerificationStatus,
 )
+
+
+def test_contribution_import_keeps_public_caps_and_bounds_batches():
+    # drained rows obey the same text caps as direct public submissions
+    with pytest.raises(ValidationError):
+        ContributionImportIn(contributions=[{"id": "x", "text": "short"}])
+    with pytest.raises(ValidationError):  # batch bound mirrors the edge drain LIMIT
+        ContributionImportIn(contributions=[
+            {"id": str(i), "text": "legitimate looking text"} for i in range(201)
+        ])
+    ok = ContributionImportIn(contributions=[
+        {"id": "edge-1", "text": "witnessed shelling near the market yesterday"}
+    ])
+    assert ok.contributions[0].event_id is None
 
 
 def test_ingested_events_default_to_unverified_claim():

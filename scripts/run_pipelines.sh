@@ -30,6 +30,8 @@ PY="$REPO/.venv/bin/python"
     echo "origin not ready — skipping this cycle"; exit 0
   fi
   cd "$REPO/pipelines"
+  echo "--- contributions (drain edge buffer into the moderation queue)"
+  "$PY" -m contributions.run 2>&1
   echo "--- ingest"
   "$PY" -m ingest.run 2>&1
   echo "--- audit (continental desks; degrades to rules without API key)"

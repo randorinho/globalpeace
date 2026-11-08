@@ -16,10 +16,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..config import settings
 from ..db import get_session
 from ..models import Contribution, Event, ReviewDecision
-from ..schemas import ContributionIn, ContributionOut, EventOut, VerificationStatus
+from ..schemas import (
+    ContributionImportIn, ContributionIn, ContributionOut, EventOut,
+    VerificationStatus,
+)
 from .events import _to_out
 
 router = APIRouter(prefix="/public", tags=["public"])
+
+# Unprefixed router for the dark-origin drain (docs/DARK_ORIGIN.md phase 2):
+# /contributions/import is NOT under /public, so the edge 403s it and only
+# trusted local callers holding the gateway secret reach it.
+internal = APIRouter(tags=["contributions"])
 
 PUBLIC_STATUSES = (
     VerificationStatus.VERIFIED,
@@ -211,6 +219,39 @@ async def submit_contribution(
     await session.commit()
     await session.refresh(record)
     return record
+
+
+@internal.post("/contributions/import")
+async def import_contributions(
+    body: ContributionImportIn, session: AsyncSession = Depends(get_session)
+):
+    """Drain target for the edge contributions buffer. The canonical screens
+    re-run here (transparent Python rules stay authoritative); every item gets
+    a terminal outcome so the drain can ack it — nothing loops forever."""
+    imported: list[str] = []
+    skipped: list[dict] = []
+    notes: list[dict] = []
+    for item in body.contributions:
+        if await session.get(Contribution, item.id) is not None:
+            skipped.append({"id": item.id, "reason": "duplicate"})
+            continue
+        text = item.text.strip()
+        if PII_PATTERNS.search(text):
+            skipped.append({"id": item.id, "reason": "pii"})
+            continue
+        event_id = item.event_id
+        if event_id and await session.get(Event, event_id) is None:
+            # keep the testimony, drop the dangling reference — moderators
+            # still see it; the note keeps the gap from being silent
+            notes.append({"id": item.id, "note": "event_not_found_detached"})
+            event_id = None
+        session.add(Contribution(
+            contribution_id=item.id, event_id=event_id, text=text,
+            url=str(item.url) if item.url else None,
+        ))
+        imported.append(item.id)
+    await session.commit()
+    return {"imported": imported, "skipped": skipped, "notes": notes}
 
 
 def _actor_class(reviewer: str) -> str:

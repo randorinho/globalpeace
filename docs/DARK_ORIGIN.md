@@ -78,7 +78,7 @@ events that leave the published set are deleted (publish/remove symmetry).
 Acceptance: diff snapshot responses against live origin responses for every
 endpoint; zero differences for a full pipeline day.
 
-### Phase 2 — contributions at the edge
+### Phase 2 — contributions at the edge ✅ 2026-11-08 (pending worker deploy)
 
 1. D1 table `pending_contributions(id, event_id, text, url, created_at,
    client_hash)`. The worker's POST handler enforces what the origin enforces

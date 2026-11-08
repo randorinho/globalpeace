@@ -34,6 +34,7 @@ app.include_router(health.router)
 app.include_router(events.router)
 app.include_router(review.router)
 app.include_router(public.router)
+app.include_router(public.internal)  # /contributions/import — edge-drain target, not under /public
 app.include_router(evidence.router)
 app.include_router(hra.router)
 app.include_router(solutions.router)
