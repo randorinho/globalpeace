@@ -11,7 +11,7 @@ python -m ingest.run --source reliefweb-sd
 
 - `ingest/sources.yaml` — source registry with per-source confidence priors
 - `ingest/countries.py` — full ISO-3166 registry; name→country matching is word-boundary based and longest-alias-first (unmatched items are skipped and logged, never guessed)
-- `ingest/connectors/` — `rss` (generic RSS/Atom, retries ReliefWeb's WAF 202s), `reliefweb` (REST API; global mode attributes by structured `primary_country.iso3`, needs registered RELIEFWEB_APPNAME)
+- `ingest/connectors/` — `rss` (generic RSS/Atom, retries ReliefWeb's WAF 202s), `reliefweb` (REST API; global mode attributes by structured `primary_country.iso3`, needs registered RELIEFWEB_APPNAME), `ucdp` (UCDP GED releases; needs registered UCDP_API_TOKEN, 5,000 req/day — each immutable release is walked once, then skipped via a `.state/` marker)
 - `ingest/classify.py` — auditable regex rules → event type; unmatched items are skipped and logged, never guessed
 - `ingest/dedupe.py` — sqlite ledger in `.state/` so re-runs don't re-post
 - Everything lands as `information_type=claim`, `verification_status=unverified` — verification is a separate audited step

@@ -13,6 +13,8 @@ class SourceConfig:
     rw_country: str | None = None
     url: str | None = None
     limit: int = 20
+    ucdp_version: str | None = None  # UCDP dataset release, e.g. "26.1"
+    since: str | None = None  # ISO date backfill window start (connectors that filter by date)
 
 
 @dataclass

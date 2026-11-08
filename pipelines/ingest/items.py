@@ -12,4 +12,6 @@ class RawItem:
     summary: str = ""
     language: str = "en"
     country: str | None = None  # ISO2 if the source provides it structurally
+    event_type: str | None = None  # set when the source types events structurally (bypasses classify)
+    location: tuple[float, float] | None = None  # (lat, lon) if structural, settlement-level only
     extra: dict = field(default_factory=dict)

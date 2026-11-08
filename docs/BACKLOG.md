@@ -68,6 +68,11 @@ The platform is live at globalpeace.ai; these make it dependable.
       in pipelines/ reads the Contribution table, so no form-side AI notice
       is required). DPO to verify: transfer-basis wording and processor list;
       deploy to production (main) after the check.
+- [x] **UCDP GED connector** — token granted 2026-11-08 (UCDP_API_TOKEN in
+      infra/.env, 5,000 req/day); `ucdp-ged` source ingests release 26.1 since
+      2025-12-01 with structured country/type/coordinates (settlement-precision
+      only); immutable releases walked once (`.state/ucdp-*.done`), bump
+      `ucdp_version` for the next release
 - [ ] **ACLED connector** — register for API access; conflict-event ingestion +
       the cross-check target the audit matrix already names
 - [ ] **UNHCR data portal connector** — refugee/displacement figures

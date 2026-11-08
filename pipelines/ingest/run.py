@@ -9,6 +9,7 @@ are logged with the reason so coverage gaps are visible, never silent.
 """
 import argparse
 import json
+import os
 import sys
 
 from .classify import classify, match_country
@@ -31,13 +32,13 @@ def run_source(cfg, ledger, dry_run: bool) -> dict:
             stats["no_country"] += 1
             print(f"  skip (no country match): {item.title[:80]}", file=sys.stderr)
             continue
-        event_type = classify(f"{item.title} {item.summary}")
+        event_type = item.event_type or classify(f"{item.title} {item.summary}")
         if not event_type:
             stats["no_type"] += 1
             print(f"  skip (no event type):    {item.title[:80]}", file=sys.stderr)
             continue
         item.country = country
-        location = locate(f"{item.title} {item.summary}", country)
+        location = item.location or locate(f"{item.title} {item.summary}", country)
         if dry_run:
             where = f" @({location[0]:.2f},{location[1]:.2f})" if location else ""
             print(f"  would post [{event_type}/{country}]{where}: {item.title[:80]}")
@@ -62,6 +63,9 @@ def main() -> None:
     ap.add_argument("--source", help="run a single source id (default: all)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+    if args.dry_run:
+        # connectors with walk-once markers (ucdp) must not mark on a dry run
+        os.environ["GPAI_INGEST_DRY_RUN"] = "1"
 
     registry = load_registry()
     ledger = SeenLedger()

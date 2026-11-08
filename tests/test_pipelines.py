@@ -85,6 +85,31 @@ def test_normative_anchors_reach_every_prioritizing_prompt():
         assert anchor in NORMATIVE_ANCHORS
 
 
+def test_ucdp_row_maps_structurally():
+    from ingest.connectors.ucdp import _to_item
+    from ingest.registry import SourceConfig
+    cfg = SourceConfig(id="ucdp-ged", kind="ucdp", confidence=0.8)
+    row = {
+        "id": 580077, "relid": "MLI-2025-1-15108-152", "type_of_violence": 1,
+        "side_a": "Government of Mali", "side_b": "JNIM", "best": 5,
+        "where_coordinates": "Dioura town", "adm_1": "Mopti region",
+        "where_prec": 1, "latitude": 15.0, "longitude": -4.6,
+        "country": "Mali", "date_start": "2025-12-03", "date_end": "2025-12-03",
+        "where_description": "Dioura military camp",
+    }
+    item = _to_item(cfg, "26.1", row)
+    assert item.country == "ML" and item.event_type == "attack"  # structured, no regex guessing
+    assert item.location == (15.0, -4.6)
+    assert item.url == "https://ucdpapi.pcr.uu.se/api/gedevents/26.1?id=580077"
+    assert "Government of Mali" in item.title and "5 killed" in item.title
+    # GED's historical country labels still resolve via alias matching
+    assert _to_item(cfg, "26.1", {**row, "country": "Russia (Soviet Union)"}).country == "RU"
+    assert _to_item(cfg, "26.1", {**row, "country": "Myanmar (Burma)"}).country == "MM"
+    assert _to_item(cfg, "26.1", {**row, "country": "DR Congo (Zaire)"}).country == "CD"
+    # admin/country centroids (where_prec >= 3) are false precision — dropped
+    assert _to_item(cfg, "26.1", {**row, "where_prec": 3}).location is None
+
+
 def test_geolocate_city_scoped_to_country(tmp_path, monkeypatch):
     import ingest.geolocate as g
     def row(name, lat, lon, cc, pop):
