@@ -75,6 +75,13 @@ export default {
     }
 
     if (!url.pathname.startsWith(API_PREFIX)) {
+      // Asset misses land here. Browsers were already caught by the asset
+      // layer's SPA fallback; non-navigation clients (crawlers following
+      // sitemap.xml's canonical path urls) get the same shell — main.tsx
+      // translates the path to the matching hash route.
+      if (request.method === "GET" || request.method === "HEAD") {
+        return env.ASSETS.fetch(new Request(`${url.origin}/`, { method: request.method }));
+      }
       return jsonError(404, "not found");
     }
 
