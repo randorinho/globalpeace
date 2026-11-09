@@ -16,10 +16,10 @@ echo "→ 2/7 clone repo on VPS"
 $SSH "test -d /opt/gpai || git clone https://github.com/randorinho/globalpeace /opt/gpai; cd /opt/gpai && git switch main && git pull -q"
 
 echo "→ 3/7 transfer secrets (never in git)"
+# Dark origin (docs/DARK_ORIGIN.md): no tunnel credentials exist anymore.
+# Mind GPAI_EDGE_SYNC_DISABLED: it must be ABSENT on the production copy.
 scp -q "$REPO/infra/.env" root@$IP:/opt/gpai/infra/.env
-$SSH "mkdir -p /opt/gpai/infra/cloudflared && chmod 600 /opt/gpai/infra/.env"
-scp -q "$REPO"/infra/cloudflared/*.json root@$IP:/opt/gpai/infra/cloudflared/
-scp -q "$REPO/infra/cloudflared/config.yml" root@$IP:/opt/gpai/infra/cloudflared/
+$SSH "chmod 600 /opt/gpai/infra/.env && sed -i '/^GPAI_EDGE_SYNC_DISABLED=/d' /opt/gpai/infra/.env"
 scp -q "$DUMP" root@$IP:/opt/gpai/restore.pgdump && rm -f "$DUMP"
 
 echo "→ 4/7 start data stores and restore"
@@ -27,8 +27,8 @@ $SSH "cd /opt/gpai/infra && docker compose up -d postgres neo4j opensearch redpa
 $SSH "cd /opt/gpai/infra && until docker exec gpai-postgres-1 pg_isready -U gpai >/dev/null 2>&1; do sleep 2; done"
 $SSH "docker exec -i gpai-postgres-1 pg_restore -U gpai --clean --if-exists -d gpai < /opt/gpai/restore.pgdump && rm /opt/gpai/restore.pgdump"
 
-echo "→ 5/7 start API + tunnel (second connector joins; zero-downtime cutover)"
-$SSH "cd /opt/gpai/infra && docker compose --profile tunnel up -d --build api cloudflared"
+echo "→ 5/7 start API (loopback-only; the edge serves snapshots, never this host)"
+$SSH "cd /opt/gpai/infra && docker compose up -d --build --remove-orphans api"
 
 echo "→ 6/7 pipelines on VPS (systemd timer, 30 min)"
 $SSH "cd /opt/gpai && bash scripts/setup_venv.sh"
@@ -67,12 +67,11 @@ WantedBy=timers.target
 UNIT
 systemctl daemon-reload && systemctl enable --now gpai-pipelines.timer gpai-backup.timer'
 
-echo "→ 7/7 verify via VPS, then cut over"
-$SSH "curl -sf --max-time 20 http://localhost:8000/readyz" && echo "  ✓ VPS origin ready"
-curl -sf --max-time 30 https://globalpeace.ai/api/public/events >/dev/null && echo "  ✓ public feed healthy during dual-connector window"
-echo "→ stopping laptop origin (tunnel fails over to VPS connector)"
+echo "→ 7/7 verify (the public site never depends on this host being up)"
+$SSH "curl -sf --max-time 20 http://localhost:8000/readyz" && echo "  ✓ VPS origin ready (loopback)"
+$SSH "cd /opt/gpai && set -a; . infra/.env; set +a; cd pipelines && ../.venv/bin/python -m publish.run" \
+  && echo "  ✓ VPS published snapshots"
+curl -sf --max-time 30 https://globalpeace.ai/api/public/events >/dev/null && echo "  ✓ public feed from snapshots"
+echo "→ stopping laptop pipeline schedule (VPS systemd timer owns it now)"
 launchctl bootout gui/$(id -u)/ai.globalpeace.pipelines 2>/dev/null || true
-(cd "$REPO/infra" && docker compose --profile tunnel down)
-sleep 10
-curl -sf --max-time 30 https://globalpeace.ai/api/public/events >/dev/null && echo "  ✓ public feed served by VPS — migration complete"
-curl -sf --max-time 25 https://origin.globalpeace.ai/healthz >/dev/null && echo "  ✓ origin healthy from VPS"
+echo "  ✓ migration complete — set GPAI_EDGE_SYNC_DISABLED=1 in the laptop infra/.env if it keeps a dev stack"

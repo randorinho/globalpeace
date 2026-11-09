@@ -67,10 +67,19 @@ def fetch_ucdp(cfg: SourceConfig) -> list[RawItem]:
         next_url = data.get("NextPageUrl") or None
     if next_url:
         print(f"  page cap hit ({MAX_PAGES}) — walk incomplete, will resume next run", file=sys.stderr)
-    elif not os.environ.get("GPAI_INGEST_DRY_RUN"):  # a dry run must not block the real walk
-        STATE_DIR.mkdir(exist_ok=True)
-        marker.write_text(stamp)
+        cfg._ucdp_incomplete = True  # noqa: SLF001 — read back by finalize_ucdp
     return items
+
+
+def finalize_ucdp(cfg: SourceConfig) -> None:
+    """Runner calls this only after the source posted with ZERO errors and not
+    in dry-run — writing the walk-once marker any earlier would silently lose
+    events that failed to post (the seen-ledger makes re-walks idempotent)."""
+    if getattr(cfg, "_ucdp_incomplete", False):
+        return
+    version = cfg.ucdp_version or "26.1"
+    STATE_DIR.mkdir(exist_ok=True)
+    (STATE_DIR / f"ucdp-{cfg.id}.done").write_text(f"{version}|{cfg.since or ''}")
 
 
 def _to_item(cfg: SourceConfig, version: str, row: dict) -> RawItem:
@@ -80,7 +89,8 @@ def _to_item(cfg: SourceConfig, version: str, row: dict) -> RawItem:
     where = f"{place}, {country_name}" if place else country_name
     kind = VIOLENCE.get(row.get("type_of_violence"), "Armed violence")
     location = None
-    if row.get("where_prec") in (1, 2) and row.get("latitude") is not None:
+    if (row.get("where_prec") in (1, 2)
+            and row.get("latitude") is not None and row.get("longitude") is not None):
         location = (float(row["latitude"]), float(row["longitude"]))
     return RawItem(
         source_id=cfg.id,

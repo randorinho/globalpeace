@@ -17,8 +17,10 @@ jobs:
           [ "$n" -ge 1 ]
       - name: Snapshot freshness (origin is dark — staleness is the outage signal)
         run: |
+          # last_complete_at, not generated_at: a partial publish refreshes the
+          # latter but not the former, so frozen payloads still alarm here
           gen=$(curl -sf --max-time 20 https://globalpeace.ai/api/public/meta \
-            | python3 -c 'import json,sys,datetime; print(int(datetime.datetime.fromisoformat(json.load(sys.stdin)["generated_at"]).timestamp()))')
+            | python3 -c 'import json,sys,datetime; v=json.load(sys.stdin).get("last_complete_at") or sys.exit(1); print(int(datetime.datetime.fromisoformat(v).timestamp()))')
           age=$(( $(date +%s) - gen ))
           echo "snapshot age: ${age}s"
           [ "$age" -lt 129600 ] || { echo "STALE: snapshots older than 36h — pipeline or publisher down"; exit 1; }

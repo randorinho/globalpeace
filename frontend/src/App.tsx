@@ -546,7 +546,12 @@ export default function App() {
   useEffect(() => {
     fetch("/api/public/meta")
       .then((r) => (r.ok ? r.json() : null))
-      .then((m) => m?.generated_at && setDataAsOf(m.generated_at))
+      // last_complete_at is the honest freshness (a partial publish refreshes
+      // generated_at only); fall back for snapshots predating the field
+      .then((m) => {
+        const at = m?.last_complete_at ?? m?.generated_at;
+        if (at) setDataAsOf(at);
+      })
       .catch(() => {});
   }, []);
 

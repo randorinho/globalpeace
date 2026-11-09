@@ -207,7 +207,11 @@ class ContributionImportItem(BaseModel):
 
 
 class ContributionImportIn(BaseModel):
-    contributions: list[ContributionImportItem] = Field(max_length=200)
+    """Items stay RAW dicts here: validation is per item inside the handler,
+    so one malformed edge row becomes a terminal skip instead of 422-ing the
+    whole batch and wedging the drain's head-of-queue forever."""
+
+    contributions: list[dict] = Field(max_length=200)
 
 
 class ContributionOut(BaseModel):

@@ -13,18 +13,20 @@ from app.schemas import (  # noqa: E402
 )
 
 
-def test_contribution_import_keeps_public_caps_and_bounds_batches():
-    # drained rows obey the same text caps as direct public submissions
+def test_contribution_import_validates_per_item_never_per_batch():
+    from app.schemas import ContributionImportItem
+
+    # drained rows obey the same text caps as direct public submissions —
+    # enforced PER ITEM so one poison row can't 422 the batch and wedge the
+    # drain's head-of-queue (ContributionImportIn carries raw dicts)
     with pytest.raises(ValidationError):
-        ContributionImportIn(contributions=[{"id": "x", "text": "short"}])
+        ContributionImportItem(id="x", text="short")
+    batch = ContributionImportIn(contributions=[{"id": "x", "text": "short"}])
+    assert batch.contributions == [{"id": "x", "text": "short"}]  # not rejected here
     with pytest.raises(ValidationError):  # batch bound mirrors the edge drain LIMIT
-        ContributionImportIn(contributions=[
-            {"id": str(i), "text": "legitimate looking text"} for i in range(201)
-        ])
-    ok = ContributionImportIn(contributions=[
-        {"id": "edge-1", "text": "witnessed shelling near the market yesterday"}
-    ])
-    assert ok.contributions[0].event_id is None
+        ContributionImportIn(contributions=[{"id": str(i)} for i in range(201)])
+    ok = ContributionImportItem(id="edge-1", text="witnessed shelling near the market")
+    assert ok.event_id is None
 
 
 def test_ingested_events_default_to_unverified_claim():

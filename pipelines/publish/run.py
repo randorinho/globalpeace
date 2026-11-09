@@ -130,7 +130,7 @@ def pick_backend():
 
 # ---- payload production ----------------------------------------------------
 
-def produce() -> tuple[dict[str, tuple[bytes, str]], bool]:
+def produce(last_complete_at: str | None = None) -> tuple[dict[str, tuple[bytes, str]], bool]:
     """Fetch every public payload from the origin. Returns (key -> (bytes,
     content type), complete) — complete is False when any endpoint failed, in
     which case deletions are skipped so healthy snapshots survive flakiness."""
@@ -173,11 +173,15 @@ def produce() -> tuple[dict[str, tuple[bytes, str]], bool]:
             print(f"  SKIP arms-transfers/{iso2}: {exc}", file=sys.stderr)
             break  # graph down fails all countries alike — don't log 200 lines
 
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     meta = {
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": now,
         "events": len(events),
         "keys": len(out) + 1,
         "complete": complete,
+        # The staleness signal monitoring must use: a partial run refreshes
+        # generated_at but NOT this — frozen payloads therefore still alarm.
+        "last_complete_at": now if complete else last_complete_at,
     }
     out["public/meta.json"] = (json.dumps(meta, separators=(",", ":")).encode(), JSON_CT)
     return out, complete
@@ -222,8 +226,9 @@ def publish(dry_run: bool) -> int:
     if backend is None and not dry_run:
         print("→ publish skipped: no R2 credentials and no wrangler (see docs/DARK_ORIGIN.md)")
         return 0
-    produced, complete = produce()
     manifest = load_manifest()
+    prev_complete_at = (manifest.get("__meta__") or {}).get("last_complete_at")
+    produced, complete = produce(prev_complete_at)
     hashes = {k: digest(body) for k, (body, _) in produced.items()}
     to_put, to_delete = plan(hashes, manifest, complete)
     if dry_run:
@@ -252,6 +257,9 @@ def publish(dry_run: bool) -> int:
         except Exception as exc:  # noqa: BLE001
             stats["error"] += 1
             print(f"  ERROR delete {key}: {exc}", file=sys.stderr)
+    manifest["__meta__"] = {
+        "last_complete_at": json.loads(produced["public/meta.json"][0])["last_complete_at"],
+    }
     save_manifest(manifest)
     print(json.dumps({"backend": backend.name, **stats, "complete": complete}))
     return 1 if stats["error"] else 0

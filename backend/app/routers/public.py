@@ -7,9 +7,11 @@ review, disputed and retracted events never appear here.
 import hashlib
 import re
 import time
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from neo4j import AsyncGraphDatabase
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,8 +19,8 @@ from ..config import settings
 from ..db import get_session
 from ..models import Contribution, Event, ReviewDecision
 from ..schemas import (
-    ContributionImportIn, ContributionIn, ContributionOut, EventOut,
-    VerificationStatus,
+    ContributionImportIn, ContributionImportItem, ContributionIn,
+    ContributionOut, EventOut, VerificationStatus,
 )
 from .events import _to_out
 
@@ -231,7 +233,17 @@ async def import_contributions(
     imported: list[str] = []
     skipped: list[dict] = []
     notes: list[dict] = []
-    for item in body.contributions:
+    for raw in body.contributions:
+        # Per-item validation: a malformed row gets a terminal "skipped" so
+        # the drain can ack it — it must never 422 the batch (that would pin
+        # it at the head of the edge queue and stop all contributions).
+        try:
+            item = ContributionImportItem(**raw)
+        except ValidationError:
+            rid = raw.get("id")
+            if isinstance(rid, str) and 0 < len(rid) <= 64:
+                skipped.append({"id": rid, "reason": "invalid"})
+            continue
         if await session.get(Contribution, item.id) is not None:
             skipped.append({"id": item.id, "reason": "duplicate"})
             continue
@@ -239,15 +251,27 @@ async def import_contributions(
         if PII_PATTERNS.search(text):
             skipped.append({"id": item.id, "reason": "pii"})
             continue
+        url = str(item.url) if item.url else None
+        if url and len(url) > 1000:  # column is String(1000); don't let the DB 500 the batch
+            skipped.append({"id": item.id, "reason": "url_too_long"})
+            continue
         event_id = item.event_id
         if event_id and await session.get(Event, event_id) is None:
             # keep the testimony, drop the dangling reference — moderators
             # still see it; the note keeps the gap from being silent
             notes.append({"id": item.id, "note": "event_not_found_detached"})
             event_id = None
+        # preserve the SUBMISSION time from the edge (D1 "YYYY-MM-DD HH:MM:SS",
+        # UTC) — drain time would misdate the testimony
+        submitted_at = None
+        if item.created_at:
+            try:
+                submitted_at = datetime.fromisoformat(item.created_at).replace(tzinfo=timezone.utc)
+            except ValueError:
+                pass
         session.add(Contribution(
-            contribution_id=item.id, event_id=event_id, text=text,
-            url=str(item.url) if item.url else None,
+            contribution_id=item.id, event_id=event_id, text=text, url=url,
+            **({"created_at": submitted_at} if submitted_at else {}),
         ))
         imported.append(item.id)
     await session.commit()

@@ -39,12 +39,16 @@ function snapshotKey(url: URL): string | null {
     if (!country) return "public/arms-transfers.json";
     return /^[A-Za-z]{2}$/.test(country)
       ? `public/arms-transfers/${country.toUpperCase()}.json`
-      : null; // name-based lookups stay on the origin
+      : null; // ISO2 only post-dark-origin: country NAMES 404 (documented in public.py)
   }
   if (rest === "/hra/position") return "public/hra/position.json";
   if (rest === "/hra/positions") return "public/hra/positions.json";
   if (rest === "/solutions") return "public/solutions.json";
-  if (rest === "/solutions/history") return "public/solutions/history.json";
+  if (rest === "/solutions/history") {
+    // Only the global history is snapshotted; a country filter would silently
+    // get the wrong (global) payload — refuse rather than lie.
+    return url.searchParams.has("country") ? null : "public/solutions/history.json";
+  }
   if (rest === "/meta") return "public/meta.json"; // snapshot-only (no origin equivalent)
   const trail = /^\/events\/([A-Za-z0-9-]{1,64})\/trail$/.exec(rest);
   if (trail) return `public/trails/${trail[1]}.json`;
@@ -69,6 +73,9 @@ async function clientHash(request: Request): Promise<string> {
 }
 
 function secretOk(request: Request, env: Env): boolean {
+  if (!env.GATEWAY_SHARED_SECRET) {
+    return false; // fail CLOSED: an unset secret must never match an empty header
+  }
   const supplied = new TextEncoder().encode(request.headers.get("x-gateway-secret") ?? "");
   const expected = new TextEncoder().encode(env.GATEWAY_SHARED_SECRET);
   return supplied.byteLength === expected.byteLength &&
@@ -97,10 +104,13 @@ async function submitContribution(request: Request, env: Env): Promise<Response>
   if (body.url !== undefined && body.url !== null && body.url !== "") {
     try {
       const parsed = new URL(String(body.url));
-      if (!/^https?:$/.test(parsed.protocol) || String(body.url).length > 2048) throw new Error();
+      // Cap the NORMALIZED form (percent-encoding can triple the raw length)
+      // at the origin column size (Contribution.url String(1000)) so a stored
+      // row can never wedge the drain downstream.
       contributionUrl = parsed.toString();
+      if (!/^https?:$/.test(parsed.protocol) || contributionUrl.length > 1000) throw new Error();
     } catch {
-      return jsonError(422, "url must be a valid http(s) link");
+      return jsonError(422, "url must be a valid http(s) link of at most 1000 characters");
     }
   }
   const eventId = typeof body.event_id === "string" ? body.event_id : null;
@@ -150,16 +160,13 @@ async function handleInternal(rest: string, request: Request, env: Env): Promise
     const ids = Array.isArray(body.ids)
       ? body.ids.filter((x): x is string => typeof x === "string").slice(0, 200)
       : [];
-    let acked = 0;
-    for (const id of ids) {
-      const res = await env.PENDING.prepare(
-        "UPDATE pending_contributions SET drained = 1 WHERE id = ?1",
-      ).bind(id).run();
-      acked += res.meta.changes ?? 0;
-    }
-    await env.PENDING.prepare(
+    const ack = env.PENDING.prepare("UPDATE pending_contributions SET drained = 1 WHERE id = ?1");
+    const purge = env.PENDING.prepare(
       "DELETE FROM pending_contributions WHERE drained = 1 AND created_at < datetime('now', '-25 hours')",
-    ).run();
+    );
+    const results = await env.PENDING.batch([...ids.map((id) => ack.bind(id)), purge]);
+    const acked = results.slice(0, ids.length)
+      .reduce((n, r) => n + (r.meta.changes ?? 0), 0);
     return Response.json({ acked });
   }
   return jsonError(404, "not found");

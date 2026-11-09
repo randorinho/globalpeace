@@ -121,9 +121,9 @@ functional with the compose stack stopped; a pipeline window updates the site.
 Verified live 2026-11-09: snapshots serve all public reads (x-gpai-snapshot),
 healthz and non-public API closed at the edge, cloudflared removed from the
 VPS (origin.globalpeace.ai answers 530 — no connector), GATEWAY_SHARED_SECRET
-rotated on worker/VPS/laptop with the drain re-authenticated. Outstanding
-hygiene: delete the tunnel object + origin DNS record in the dashboard and
-remove the credential files from both machines.
+rotated on worker/VPS/laptop with the drain re-authenticated. Hygiene completed
+2026-11-09: tunnel object and origin DNS record deleted, credential files
+purged from both machines — origin.globalpeace.ai no longer resolves.
 
 ### Phase 4 — write it down ✅ 2026-11-09 (docs/SECURITY.md + weekly dependency audit; ARCHITECTURE/privacy-page updates with the DPO desk)
 

@@ -9,11 +9,10 @@ are logged with the reason so coverage gaps are visible, never silent.
 """
 import argparse
 import json
-import os
 import sys
 
 from .classify import classify, match_country
-from .connectors import CONNECTORS
+from .connectors import CONNECTORS, FINALIZERS
 from .dedupe import SeenLedger
 from .geolocate import locate
 from .registry import load_registry
@@ -63,9 +62,6 @@ def main() -> None:
     ap.add_argument("--source", help="run a single source id (default: all)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    if args.dry_run:
-        # connectors with walk-once markers (ucdp) must not mark on a dry run
-        os.environ["GPAI_INGEST_DRY_RUN"] = "1"
 
     registry = load_registry()
     ledger = SeenLedger()
@@ -76,6 +72,11 @@ def main() -> None:
         print(f"[{cfg.id}] ({cfg.kind})")
         try:
             stats = run_source(cfg, ledger, args.dry_run)
+            # commit point: only an error-free, non-dry run finalizes (e.g.
+            # writes ucdp's walk-once marker) — failed posts stay fetchable
+            if not args.dry_run and not stats.get("error"):
+                if finalize := FINALIZERS.get(cfg.kind):
+                    finalize(cfg)
         except Exception as exc:  # noqa: BLE001 — one dead source must not kill the run
             print(f"  SOURCE ERROR ({cfg.id}): {exc}", file=sys.stderr)
             stats = {"error": 1}
