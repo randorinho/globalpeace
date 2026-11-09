@@ -101,7 +101,7 @@ endpoint; zero differences for a full pipeline day.
 Acceptance: submission on the live site lands in the review console after the
 next pipeline window; rate limit and PII screen behave as before.
 
-### Phase 3 — go dark
+### Phase 3 — go dark ✅ 2026-11-09
 
 1. Flip the worker: `/api/public/*` reads are R2-only (origin fallback
    removed); `/api/*` everything else answers 403/404 at the edge.
@@ -117,6 +117,13 @@ next pipeline window; rate limit and PII screen behave as before.
 
 Acceptance: external scan shows no inbound path to the origin host; site fully
 functional with the compose stack stopped; a pipeline window updates the site.
+
+Verified live 2026-11-09: snapshots serve all public reads (x-gpai-snapshot),
+healthz and non-public API closed at the edge, cloudflared removed from the
+VPS (origin.globalpeace.ai answers 530 — no connector), GATEWAY_SHARED_SECRET
+rotated on worker/VPS/laptop with the drain re-authenticated. Outstanding
+hygiene: delete the tunnel object + origin DNS record in the dashboard and
+remove the credential files from both machines.
 
 ### Phase 4 — write it down
 
