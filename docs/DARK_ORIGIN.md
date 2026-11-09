@@ -125,7 +125,7 @@ rotated on worker/VPS/laptop with the drain re-authenticated. Outstanding
 hygiene: delete the tunnel object + origin DNS record in the dashboard and
 remove the credential files from both machines.
 
-### Phase 4 — write it down
+### Phase 4 — write it down ✅ 2026-11-09 (docs/SECURITY.md + weekly dependency audit; ARCHITECTURE/privacy-page updates with the DPO desk)
 
 - `docs/SECURITY.md`: the invariants this plan establishes — *origin accepts
   no inbound connections; public data is published, never queried; the only

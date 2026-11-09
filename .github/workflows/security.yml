@@ -1,0 +1,31 @@
+name: Security audit
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pip-audit (pipelines + backend)
+        run: |
+          pip install -q pip-audit
+          python - <<'EOF' > /tmp/audit-reqs.txt
+          import tomllib
+          for proj in ("pipelines/pyproject.toml", "backend/pyproject.toml"):
+              with open(proj, "rb") as f:
+                  print("\n".join(tomllib.load(f)["project"]["dependencies"]))
+          EOF
+          pip-audit --strict -r /tmp/audit-reqs.txt
+      - name: npm audit (worker)
+        working-directory: edge/gateway
+        run: npm ci --ignore-scripts >/dev/null && npm audit --audit-level=high
+      - name: npm audit (frontend)
+        working-directory: frontend
+        run: npm ci --ignore-scripts >/dev/null && npm audit --audit-level=high
