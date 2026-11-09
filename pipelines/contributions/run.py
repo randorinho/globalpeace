@@ -33,6 +33,9 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
+    if os.environ.get("GPAI_EDGE_SYNC_DISABLED", "") not in ("", "0"):
+        print("→ drain skipped: non-production copy (GPAI_EDGE_SYNC_DISABLED)")
+        return
     secret = gateway_secret()
     if not secret:
         print("→ drain skipped: no gateway secret configured")
