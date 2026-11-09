@@ -62,7 +62,11 @@ events that leave the published set are deleted (publish/remove symmetry).
 
 ## Phases
 
-### Phase 1 — publisher + snapshot reads (no behavior change on failure) ✅ 2026-11-08
+### Phase 1 — publisher + snapshot reads (no behavior change on failure) ✅ 2026-11-09
+
+Ownership: the PRODUCTION origin (the VPS at /opt/gpai) publishes; any other
+copy sets GPAI_EDGE_SYNC_DISABLED=1 (the reviewer laptop does) so dev data
+can never overwrite production's snapshots — learned the hard way on 11-08.
 
 1. `pipelines/publish/run.py`: queries localhost:8000 for each payload above,
    diffs against the manifest, uploads changed keys to R2 (boto3, S3 API;
@@ -78,7 +82,7 @@ events that leave the published set are deleted (publish/remove symmetry).
 Acceptance: diff snapshot responses against live origin responses for every
 endpoint; zero differences for a full pipeline day.
 
-### Phase 2 — contributions at the edge ✅ 2026-11-08 (pending worker deploy)
+### Phase 2 — contributions at the edge ✅ 2026-11-09 (verified live: edge buffer → VPS drain → moderation queue)
 
 1. D1 table `pending_contributions(id, event_id, text, url, created_at,
    client_hash)`. The worker's POST handler enforces what the origin enforces
