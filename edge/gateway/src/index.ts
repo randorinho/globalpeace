@@ -1,11 +1,11 @@
 /**
- * globalpeace.ai API gateway.
+ * globalpeace.ai edge — the whole public surface (docs/DARK_ORIGIN.md).
  *
- * Public edge entrypoint for /api/*. Proxies to the FastAPI origin through
- * Cloudflare Tunnel, attaching the gateway shared secret (and Cloudflare
- * Access service-token headers when the tunnel is Access-protected).
- *
- * Responses are streamed through — request/response bodies are never buffered.
+ * The origin accepts no inbound connections at all. This worker serves the
+ * static frontend, proxies the basemap, answers /api/public/* reads from
+ * published snapshots (R2), buffers the single public write (contributions)
+ * in D1, and exposes gateway-secret-authenticated /api/internal/* routes
+ * that the origin calls OUTBOUND to drain that buffer.
  */
 
 const API_PREFIX = "/api";
@@ -235,7 +235,10 @@ export default {
       return handleInternal(rest, request, env);
     }
 
-    if (!rest.startsWith("/public/") && rest !== "/healthz") {
+    // Dark origin, phase 3 (docs/DARK_ORIGIN.md): there is NO path from here
+    // to the origin. Public reads are published snapshots; the only write is
+    // the D1 contributions buffer; everything else ends at the edge.
+    if (!rest.startsWith("/public/")) {
       return jsonError(403, "this endpoint requires authenticated access");
     }
 
@@ -245,66 +248,39 @@ export default {
       return submitContribution(request, env);
     }
 
-    // Public GETs serve from the published snapshot when one exists; a miss
-    // falls through to the origin proxy (phase-1 reversibility).
-    if (request.method === "GET" && rest.startsWith("/public/")) {
-      const key = snapshotKey(url);
-      const object = key ? await env.SNAPSHOTS.get(key) : null;
-      if (object) {
-        const headers = new Headers({
-          "content-type": object.httpMetadata?.contentType ?? "application/json",
-          "cache-control": `public, max-age=${SNAPSHOT_CACHE_SECONDS}`,
-          etag: object.httpEtag,
-          "x-gpai-snapshot": "1",
-        });
-        if (key === "public/events.csv") {
-          headers.set("content-disposition", 'attachment; filename="globalpeace-events.csv"');
-        }
-        return new Response(object.body, { headers });
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return jsonError(405, "method not allowed");
+    }
+    const key = snapshotKey(url);
+    if (!key) {
+      return jsonError(404, "not found");
+    }
+    const object = await env.SNAPSHOTS.get(key);
+    if (!object) {
+      // Absent per-country arms file means "no documented transfers", not an
+      // error — the publisher only emits countries with data.
+      if (/^public\/arms-transfers\/[A-Z]{2}\.json$/.test(key)) {
+        return Response.json(
+          {
+            attribution: "Source: SIPRI Arms Transfers Database (where source=SIPRI); "
+              + "TIV values are SIPRI trend-indicator values, not prices.",
+            count: 0,
+            transfers: [],
+          },
+          { headers: { "cache-control": `public, max-age=${SNAPSHOT_CACHE_SECONDS}` } },
+        );
       }
+      return jsonError(404, "not found");
     }
-
-    // Map /api/<rest> → origin /<rest>
-    const originUrl = new URL(env.ORIGIN_URL);
-    originUrl.pathname = url.pathname.slice(API_PREFIX.length) || "/";
-    originUrl.search = url.search;
-
-    const headers = new Headers(request.headers);
-    headers.set("x-gateway-secret", env.GATEWAY_SHARED_SECRET);
-    if (env.CF_ACCESS_CLIENT_ID && env.CF_ACCESS_CLIENT_SECRET) {
-      headers.set("CF-Access-Client-Id", env.CF_ACCESS_CLIENT_ID);
-      headers.set("CF-Access-Client-Secret", env.CF_ACCESS_CLIENT_SECRET);
+    const headers = new Headers({
+      "content-type": object.httpMetadata?.contentType ?? "application/json",
+      "cache-control": `public, max-age=${SNAPSHOT_CACHE_SECONDS}`,
+      etag: object.httpEtag,
+      "x-gpai-snapshot": "1",
+    });
+    if (key === "public/events.csv") {
+      headers.set("content-disposition", 'attachment; filename="globalpeace-events.csv"');
     }
-
-    try {
-      // Body streams through untouched; the Response is returned as-is so the
-      // origin's stream is piped to the client without buffering.
-      const originResponse = await fetch(originUrl, {
-        method: request.method,
-        headers,
-        body: request.body,
-      });
-
-      // Strip the shared secret from any echo/debug paths; copy headers so we
-      // can adjust without mutating the immutable origin response.
-      const responseHeaders = new Headers(originResponse.headers);
-      responseHeaders.delete("x-gateway-secret");
-
-      return new Response(originResponse.body, {
-        status: originResponse.status,
-        statusText: originResponse.statusText,
-        headers: responseHeaders,
-      });
-    } catch (err) {
-      console.log(
-        JSON.stringify({
-          level: "error",
-          msg: "origin fetch failed",
-          path: url.pathname,
-          error: err instanceof Error ? err.message : String(err),
-        }),
-      );
-      return jsonError(502, "origin unavailable");
-    }
+    return new Response(request.method === "HEAD" ? null : object.body, { headers });
   },
 } satisfies ExportedHandler<Env>;

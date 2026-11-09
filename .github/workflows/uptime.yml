@@ -11,13 +11,23 @@ jobs:
     steps:
       - name: Edge health
         run: curl -sf --max-time 20 https://globalpeace.ai/api/edge-healthz
-      - name: Origin through tunnel
-        run: curl -sf --max-time 25 https://origin.globalpeace.ai/healthz
       - name: Public feed end-to-end
         run: |
           n=$(curl -sf --max-time 30 'https://globalpeace.ai/api/public/events?limit=1' | head -c 2000 | grep -c event_id)
           [ "$n" -ge 1 ]
-      - name: Security boundary intact
+      - name: Snapshot freshness (origin is dark — staleness is the outage signal)
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://origin.globalpeace.ai/events)
-          [ "$code" = "403" ] || { echo "SECURITY: origin returned $code without secret"; exit 1; }
+          gen=$(curl -sf --max-time 20 https://globalpeace.ai/api/public/meta \
+            | python3 -c 'import json,sys,datetime; print(int(datetime.datetime.fromisoformat(json.load(sys.stdin)["generated_at"]).timestamp()))')
+          age=$(( $(date +%s) - gen ))
+          echo "snapshot age: ${age}s"
+          [ "$age" -lt 129600 ] || { echo "STALE: snapshots older than 36h — pipeline or publisher down"; exit 1; }
+      - name: Security boundary intact (non-public API closed at the edge)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://globalpeace.ai/api/events)
+          [ "$code" = "403" ] || { echo "SECURITY: edge returned $code for a non-public endpoint"; exit 1; }
+      - name: Origin is dark (no public path may reach it)
+        run: |
+          if curl -sf --max-time 20 https://origin.globalpeace.ai/healthz >/dev/null 2>&1; then
+            echo "SECURITY: origin is publicly reachable — the tunnel should be gone"; exit 1
+          fi

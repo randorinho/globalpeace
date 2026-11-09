@@ -69,18 +69,9 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
 
-  # Cloudflare Tunnel — the ONLY public path to the origin.
-  # Create the tunnel in Zero Trust → Networks → Tunnels, map
-  # origin.globalpeace.ai → http://api:8000, then:
-  #   TUNNEL_TOKEN=... docker compose --profile tunnel up -d
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    profiles: ["tunnel"]
-    command: tunnel --config /etc/cloudflared/config.yml run
-    volumes:
-      - ./cloudflared:/etc/cloudflared:ro   # config.yml + credentials (gitignored)
-    depends_on:
-      - api
+  # No tunnel, no inbound: the origin is dark (docs/DARK_ORIGIN.md phase 3).
+  # The edge serves published snapshots; this stack only makes OUTBOUND calls
+  # (snapshot publish to R2, contribution drain against the worker).
 
 volumes:
   pgdata:
