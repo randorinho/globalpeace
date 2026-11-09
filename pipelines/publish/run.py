@@ -116,6 +116,11 @@ class WranglerBackend:
 
 
 def pick_backend():
+    # Kill switch: the snapshot source of truth is the PRODUCTION origin. Set
+    # GPAI_PUBLISH_DISABLED=1 on any non-production copy (e.g. the reviewer
+    # laptop) so its pipeline runs never publish over production's snapshots.
+    if os.environ.get("GPAI_PUBLISH_DISABLED", "") not in ("", "0"):
+        return None
     if all(os.environ.get(v) for v in ("R2_ENDPOINT", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY")):
         return S3Backend()
     if shutil.which("npx") and (GATEWAY_DIR / "wrangler.jsonc").exists():
