@@ -10,6 +10,17 @@ const JOURNEY: { step: string; detail: string }[] = [
   { step: "Publish", detail: "The public feed shows only verified, partially-verified, or explicitly machine-labeled events — each with a public verification trail anyone can inspect." },
 ];
 
+const AGENTS: { role: string; count: string; body: string }[] = [
+  { role: "Transparent rules engine", count: "deterministic — not an AI",
+    body: "Scores every incoming claim against published criteria (source tier, recency, corroboration, specificity) and attaches its verdict, reasons and named cross-checks to the event. Its output is the shared starting point every other agent reads." },
+  { role: "Continental analyst desks", count: "6 desks × 6 lenses = up to 36 AI analysts per cycle",
+    body: "One desk per continent (Africa, Asia, Europe, North America, South America, Oceania). Each desk runs a panel of six independent AI analysts over the same regional digest, one lens each: source criticism, methodology, regional context, corroboration, temporal consistency, humanitarian impact. They interact only through aggregation: every concern is kept and attributed; a concern raised independently by two or more lenses becomes panel consensus. Panels output doubt only — any concern can downgrade a claim, none can upgrade or verify it." },
+  { role: "Human Rights Agent", count: "1 agent, two mandates",
+    body: "Mandate one — the immune system: a deterministic algorithm (no AI) scores six vital systems per country (civilian safety, population stability, food security, health system, humanitarian access, poverty & livelihoods) from treated events, weighted by verification status and decaying on a 14-day half-life, then prioritizes playbook actions — urgent ones always require human dispatch. Mandate two — an independent AI auditor of the platform itself: exposure risk, bias between countries, governance drift, manipulation surface. It drafts the public position statement from computed data only." },
+  { role: "Solutions agents", count: "2 AI agents per tracked situation",
+    body: "A political agent (dialogue formats, mediation tracks, regional-organisation engagement, confidence-building) and an economic agent (humanitarian financing, market stabilisation, trade and livelihood protection) each draft 2–3 concrete approaches per situation — grounded only in the cited events and vitals of that situation's digest, naming institutions only, each carrying rationale, risks, an explicit what-would-make-this-wrong, and a confidence grade." },
+];
+
 const RULES: { title: string; body: string }[] = [
   { title: "Machines propose, humans dispose", body: "No AI output verifies, dispatches, or escalates anything. Every consequential action requires a named, accountable human (APDSI letter, Art. 86-C spirit)." },
   { title: "The harm gate outranks accuracy", body: "If information could endanger a person, the platform must not publish it automatically — even when the information is accurate. Events naming individuals or exact locations always require human review." },
@@ -55,6 +66,59 @@ export default function About() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="hra">
+        <div className="hra-head">
+          <h3>The agent system, functionally</h3>
+          <span className="hra-meta">one pipeline cycle every 30 minutes; all machine output advisory, budget-capped, with a kill switch</span>
+        </div>
+        <p className="funding-none">
+          Each cycle runs a fixed sequence: ingest → rules audit → analyst
+          panels → fail-closed promotion → Human Rights Agent → solutions →
+          publish. Agents never talk to each other directly — each stage reads
+          the recorded output of the previous one, so every influence on a
+          published event is inspectable in its verification trail.
+        </p>
+        <div className="sol-grid">
+          {AGENTS.map((a) => (
+            <div className="sol-card funding-card" key={a.role}>
+              <span className="sol-title">{a.role}</span>
+              <span className="hra-meta">{a.count}</span>
+              <p>{a.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hra">
+        <div className="hra-head"><h3>The data it works from</h3></div>
+        <p className="funding-none">
+          Institutional feeds fetched every cycle: UN News, ReliefWeb (including
+          IOM displacement reporting), the UCDP georeferenced event dataset, and
+          SIPRI arms-transfer records; geolocation against the GeoNames
+          gazetteer; plus moderated public contributions from the map page.
+          Everything enters as an unverified claim — no source, machine or
+          human, is trusted by default. Panels may name primary datasets
+          (UNHCR, ACLED, FEWS NET, WHO) a human must check, but only a named
+          reviewer records verification.
+        </p>
+      </div>
+
+      <div className="hra">
+        <div className="hra-head"><h3>From analysis to peace proposals</h3></div>
+        <p className="funding-none">
+          The solutions agents' approaches are published on the{" "}
+          <a href="#/proposals">proposals page</a>, ordered by a fully
+          transparent priority score computed from the Human Rights Agent's
+          published vitals: 0.35 × population-stability pressure + 0.25 ×
+          health-system pressure + 0.25 × civilian-safety pressure + 0.15 ×
+          poverty pressure — every component a 0–1 score derived from cited,
+          treated events. Deliberately not a war probability: the platform
+          publishes pressures and options, never forecasts. Proposals are
+          options for diplomats and authorised organisations — machine-drafted,
+          human-dispatched, never commands.
+        </p>
       </div>
 
       <div className="hra">
