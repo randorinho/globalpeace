@@ -143,13 +143,16 @@ actor-graph publication rules prohibit naming individuals
 
 ### Submission notes (not part of the form)
 
-- **Duplicate draft — ignore.** A second application ID, **GID0094541**, was
-  auto-created when a new/renewal draft was started in the DPG tool but never
-  completed (no confirmation email was ever received for it; confirmed
-  2026-11-11). The only real, submitted nomination is **GID0094392**. Discard
-  GID0094541 in the portal; do not fill it in (that would create a genuine
-  duplicate). DPGA "please finish and submit" reminders for GID0094541 are the
-  nag for that abandoned draft, not a sign GID0094392 is incomplete.
+- **Duplicate drafts — ignore.** Two extra application IDs, **GID0094393** and
+  **GID0094541**, were auto-created when new/renewal drafts were started in the
+  DPG tool but never completed (no confirmation email for either; confirmed
+  2026-11-11). The DPG tool mints a fresh GID each time an application is
+  *started* and auto-nags every unsubmitted one — GID0094392 itself got the
+  same "incomplete" reminders (2026-10-19, 2026-10-26) before it was submitted
+  on 2026-11-02. The only real, submitted nomination is **GID0094392**. Do not
+  fill in the duplicates (that would create genuine duplicate submissions).
+  Cleanup requested via support@digitalpublicgoods.net on 2026-11-11 (reply on
+  the GID0094392 status thread) asking them to close GID0094393 and GID0094541.
 - Submit after: fiscal host confirmation (Open Collective Europe) so the
   "organisation" field has an entity behind it — or submit as individual
   maintainer now; DPGA accepts community projects.
