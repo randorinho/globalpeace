@@ -1,0 +1,11 @@
+# Funding channels for globalpeace.ai (shows GitHub's "Sponsor" button).
+# Only list channels that actually resolve — a dead link renders a broken button.
+#
+# Active today:
+custom: ["https://globalpeace.ai/#/funding"]
+#
+# Uncomment each line below once that channel is live:
+#   - GitHub Sponsors: after the randorinho account is approved at github.com/sponsors
+# github: randorinho
+#   - Open Collective: after OCE approves the collective (slug 404s until then)
+# open_collective: globalpeace-ai
