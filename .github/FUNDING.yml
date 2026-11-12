@@ -3,9 +3,10 @@
 #
 # Active today:
 custom: ["https://globalpeace.ai/#/funding"]
+#   - Open Collective: hosted by Open Source Europe (approved 2026-11-12).
+#     Note: the live slug is "globalpeaceai", not "globalpeace-ai".
+open_collective: globalpeaceai
 #
 # Uncomment each line below once that channel is live:
 #   - GitHub Sponsors: after the randorinho account is approved at github.com/sponsors
 # github: randorinho
-#   - Open Collective: after OCE approves the collective (slug 404s until then)
-# open_collective: globalpeace-ai

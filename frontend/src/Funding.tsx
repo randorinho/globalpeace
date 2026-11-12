@@ -49,14 +49,19 @@ export default function Funding() {
       <div className="hra">
         <div className="hra-head">
           <h3>Current funding</h3>
-          <span className="hra-meta">updated 2026-11-02</span>
+          <span className="hra-meta">updated 2026-11-12</span>
         </div>
         <p className="funding-none">
           The platform has received <strong>no external funding to date</strong>.
-          It is built and operated by its maintainer. When the first grant or
-          donation arrives, it appears in a public ledger on this page with
-          amount, source, and purpose. Registration as a Digital Public Good
-          and a fiscal-host application (Open Collective Europe) are in
+          It is built and operated by its maintainer. Contributions can now be
+          made through{" "}
+          <a href="https://opencollective.com/globalpeaceai" target="_blank" rel="noreferrer">
+            Open Collective
+          </a>
+          , where the collective is fiscally hosted by Open Source Europe and
+          every transaction appears on a public ledger. Each grant or donation
+          received is also published on this page with amount, source, and
+          purpose. Registration as a Digital Public Good is in
           progress — see the repository's{" "}
           <a href="https://github.com/randorinho/globalpeace/blob/main/docs/FUNDING.md" target="_blank" rel="noreferrer">
             funding model

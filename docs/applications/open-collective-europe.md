@@ -1,5 +1,9 @@
 # Open Collective Europe — Fiscal Host Application Draft
 
+**APPROVED 2026-11-12.** Open Source Europe accepted the collective; it can
+now receive financial contributions, with funds held by the host. Live page:
+https://opencollective.com/globalpeaceai (slug `globalpeaceai`).
+
 Apply at: https://opencollective.com/europe (→ Apply / Submit your collective)
 Prepared 2026-11-02. Paste-ready answers; adjust to the live form's wording.
 Goal: receive donations, grants and public subsidies under OCE's Belgian
