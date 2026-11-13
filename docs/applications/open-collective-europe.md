@@ -4,6 +4,27 @@
 now receive financial contributions, with funds held by the host. Live page:
 https://opencollective.com/globalpeaceai (slug `globalpeaceai`).
 
+## Onboarding (welcome email from Laura, Open Source Europe, 2026-11-13)
+
+Action items from the host's welcome email:
+
+- [ ] Enter full legal name on Ricardo's Open Collective profile (required
+  for all administrators; not displayed publicly, but the host must be able
+  to see it on their side).
+- [ ] Add links to the collective page: https://globalpeace.ai and
+  https://github.com/randorinho/globalpeace (and any other relevant
+  resources).
+- [ ] Read the host's hosting documentation (linked in the welcome email).
+- [ ] Optional: book the short onboarding call offered by the host
+  (technical + community walkthrough; booking link in the welcome email).
+
+**Administrator constraint (binding under the host's fiscal framework):**
+a single administrator is acceptable while funds only cover project
+expenses (hosting, infrastructure, etc.). A sole administrator cannot
+invoice themselves for work carried out for the collective — before Ricardo
+invoices the collective for his own work, a second administrator must be
+added.
+
 Apply at: https://opencollective.com/europe (→ Apply / Submit your collective)
 Prepared 2026-11-02. Paste-ready answers; adjust to the live form's wording.
 Goal: receive donations, grants and public subsidies under OCE's Belgian
